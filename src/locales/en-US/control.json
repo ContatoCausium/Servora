@@ -232,8 +232,10 @@
   "nav": {
     "overview": "Overview",
     "orgs": "Organizations",
-    "billing": "Billing & subscriptions",
+    "subscriptions": "Billing & subscriptions",
     "plans": "Plans & pricing",
+    "support": "Support",
+    "notifications": "Notifications",
     "demo": "Demo studio",
     "audit": "Audit log",
     "admins": "Administrators",

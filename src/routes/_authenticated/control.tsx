@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Building2, CreditCard, DollarSign, FlaskConical, History, LayoutGrid, LogOut, Settings2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Bell, Building2, CreditCard, DollarSign, FlaskConical, Headphones, History, LayoutGrid, LogOut, Settings2, ShieldCheck } from "lucide-react";
 
 import { ServoraMark } from "@/components/app/brand-mark";
 import { AppError, AppPending } from "@/components/app/states";
@@ -44,6 +44,8 @@ const NAV = [
   { to: "/control/organizations", key: "orgs", icon: Building2 },
   { to: "/control/subscriptions", key: "subscriptions", icon: DollarSign },
   { to: "/control/plans", key: "plans", icon: CreditCard },
+  { to: "/control/support", key: "support", icon: Headphones },
+  { to: "/control/notifications", key: "notifications", icon: Bell },
   { to: "/control/demo", key: "demo", icon: FlaskConical },
   { to: "/control/audit", key: "audit", icon: History },
   { to: "/control/admins", key: "admins", icon: ShieldCheck },
