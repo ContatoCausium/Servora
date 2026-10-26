@@ -95,5 +95,29 @@
       "card": "Cartão (Sim)",
       "digital": "Pix / Carteira"
     }
+  },
+  "kds": {
+    "title": "Kitchen Display System (KDS)",
+    "subtitle": "Painel de produção com roteamento por praças e controle de atrasos",
+    "stations": {
+      "all": "Todas as Praças",
+      "grill": "Grelha",
+      "fryer": "Fritura",
+      "assembly": "Montagem",
+      "bar": "Bar & Bebidas",
+      "expo": "Expedição"
+    },
+    "columns": {
+      "new": "Novos Pedidos",
+      "in_prep": "Em Preparo",
+      "ready": "Prontos para Entrega",
+      "completed": "Concluídos Recentes"
+    },
+    "actions": {
+      "start": "Iniciar Preparo",
+      "ready": "Marcar Pronto",
+      "fulfill": "Entregar / Concluir",
+      "reopen": "Reabrir"
+    }
   }
 }

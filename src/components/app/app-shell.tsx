@@ -29,11 +29,12 @@ import {
 } from "@/components/ui/command";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type NavTo = "/" | "/pos" | "/menu" | "/locations" | "/settings/branding" | "/team" | "/settings/billing";
+type NavTo = "/" | "/pos" | "/kds" | "/menu" | "/locations" | "/settings/branding" | "/team" | "/settings/billing";
 // Curated icon set: one stroke weight, restaurant-operations semantics.
 const NAV: { to: NavTo; key: string; icon: typeof Store }[] = [
   { to: "/", key: "overview", icon: Gauge },
   { to: "/pos", key: "pos", icon: MonitorSmartphone },
+  { to: "/kds", key: "kds", icon: CookingPot },
   { to: "/menu", key: "menu", icon: BookOpenText },
   { to: "/locations", key: "locations", icon: MapPinned },
   { to: "/team", key: "employees", icon: UsersRound },
@@ -43,7 +44,6 @@ const NAV: { to: NavTo; key: string; icon: typeof Store }[] = [
 const UPCOMING: { key: string; icon: typeof Store }[] = [
   { key: "liveOps", icon: Activity },
   { key: "orders", icon: ReceiptText },
-  { key: "kds", icon: CookingPot },
   { key: "inventory", icon: Boxes },
   { key: "finance", icon: Landmark },
   { key: "analytics", icon: ChartNoAxesCombined },

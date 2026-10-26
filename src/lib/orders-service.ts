@@ -18,6 +18,8 @@ export interface SelectedModifier {
   priceCents: number;
 }
 
+export type KitchenStation = "grill" | "fryer" | "assembly" | "bar" | "expo";
+
 export interface OrderItem {
   id: string;
   productId: string;
@@ -27,6 +29,8 @@ export interface OrderItem {
   modifiers: SelectedModifier[];
   subtotalCents: number;
   notes?: string;
+  station?: KitchenStation;
+  isItemReady?: boolean;
 }
 
 export interface OrderTimelineEntry {
@@ -283,6 +287,25 @@ export function updateOrderStatus(
     status: newStatus,
     updatedAt: new Date().toISOString(),
     timeline: [timelineEntry, ...target.timeline],
+  };
+
+  saveOrder(orgId, updated);
+  return updated;
+}
+
+export function toggleOrderItemReady(orgId: string, orderId: string, itemId: string): Order | null {
+  const orders = listOrders(orgId);
+  const target = orders.find((o) => o.id === orderId);
+  if (!target) return null;
+
+  const updatedItems = target.items.map((it) =>
+    it.id === itemId ? { ...it, isItemReady: !it.isItemReady } : it
+  );
+
+  const updated: Order = {
+    ...target,
+    items: updatedItems,
+    updatedAt: new Date().toISOString(),
   };
 
   saveOrder(orgId, updated);
