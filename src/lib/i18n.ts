@@ -15,6 +15,8 @@ import ptCommon from "@/locales/pt-BR/common.json";
 import ptDashboard from "@/locales/pt-BR/dashboard.json";
 import ptLocations from "@/locales/pt-BR/locations.json";
 import ptSettings from "@/locales/pt-BR/settings.json";
+import enMenu from "@/locales/en-US/menu.json";
+import ptMenu from "@/locales/pt-BR/menu.json";
 
 export const LANGUAGES = [
   { code: "en-US", label: "English (US)", short: "EN" },
@@ -27,13 +29,13 @@ const STORAGE_KEY = "servora.lang";
 if (!i18n.isInitialized) {
   void i18n.use(initReactI18next).init({
     resources: {
-      "en-US": { common: enCommon, dashboard: enDashboard, locations: enLocations, settings: enSettings, auth: enAuth, team: enTeam, control: enControl },
-      "pt-BR": { common: ptCommon, dashboard: ptDashboard, locations: ptLocations, settings: ptSettings, auth: ptAuth, team: ptTeam, control: ptControl },
+      "en-US": { common: enCommon, dashboard: enDashboard, locations: enLocations, settings: enSettings, auth: enAuth, team: enTeam, control: enControl, menu: enMenu },
+      "pt-BR": { common: ptCommon, dashboard: ptDashboard, locations: ptLocations, settings: ptSettings, auth: ptAuth, team: ptTeam, control: ptControl, menu: ptMenu },
     },
     lng: DEFAULT_LANGUAGE,
     fallbackLng: DEFAULT_LANGUAGE,
     supportedLngs: LANGUAGES.map((l) => l.code),
-    ns: ["common", "dashboard", "locations", "settings", "auth", "team", "control"],
+    ns: ["common", "dashboard", "locations", "settings", "auth", "team", "control", "menu"],
     defaultNS: "common",
     interpolation: { escapeValue: false },
     initAsync: false,
@@ -71,8 +73,8 @@ export default i18n;
 
 // Keep namespaces registered even when the i18n instance was initialised earlier (SSR module reuse).
 const RESOURCES = {
-  "en-US": { common: enCommon, dashboard: enDashboard, locations: enLocations, settings: enSettings, auth: enAuth, team: enTeam, control: enControl },
-  "pt-BR": { common: ptCommon, dashboard: ptDashboard, locations: ptLocations, settings: ptSettings, auth: ptAuth, team: ptTeam, control: ptControl },
+  "en-US": { common: enCommon, dashboard: enDashboard, locations: enLocations, settings: enSettings, auth: enAuth, team: enTeam, control: enControl, menu: enMenu },
+  "pt-BR": { common: ptCommon, dashboard: ptDashboard, locations: ptLocations, settings: ptSettings, auth: ptAuth, team: ptTeam, control: ptControl, menu: ptMenu },
 };
 for (const [lng, nss] of Object.entries(RESOURCES)) {
   for (const [ns, res] of Object.entries(nss)) {
