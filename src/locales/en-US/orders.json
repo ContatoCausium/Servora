@@ -1,0 +1,64 @@
+{
+  "title": "Order Management",
+  "subtitle": "Monitor live tickets, change order statuses, and take on-premise, takeout, or delivery orders.",
+  "simulatedBadge": "Interactive Simulation",
+  "newOrder": "New Order",
+  "searchPlaceholder": "Search by order #, customer name or phone...",
+  "filterType": "Order Type",
+  "filterStatus": "Status",
+  "allTypes": "All Types",
+  "allStatuses": "All Statuses",
+  "emptyTitle": "No orders found",
+  "emptyBody": "Try adjusting your search criteria or create a new order.",
+  "types": {
+    "dine_in": "Dine-In",
+    "takeout": "Takeout",
+    "delivery": "Delivery"
+  },
+  "statuses": {
+    "new": "New",
+    "confirmed": "Confirmed",
+    "in_prep": "In Prep",
+    "ready": "Ready",
+    "delivered": "Delivered",
+    "cancelled": "Cancelled"
+  },
+  "columns": {
+    "order": "Order #",
+    "type": "Type",
+    "customer": "Customer",
+    "items": "Items",
+    "total": "Total (USD)",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "details": {
+    "title": "Order Details",
+    "itemsList": "Selected Items",
+    "summary": "Financial Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "tax": "Configurable Tax",
+    "total": "Grand Total",
+    "timeline": "Order Timeline",
+    "instructions": "Special Instructions",
+    "changeStatus": "Advance Status",
+    "statusUpdated": "Status updated to {{status}}"
+  },
+  "creator": {
+    "title": "Create Order",
+    "selectProduct": "Select from Menu",
+    "customerInfo": "Customer Details",
+    "name": "Full Name",
+    "phone": "Phone Number",
+    "table": "Table Number",
+    "address": "Delivery Street Address",
+    "instructions": "Kitchen Notes",
+    "taxRate": "Tax Rate (%)",
+    "discount": "Discount (USD)",
+    "addItem": "Add to Order",
+    "submit": "Confirm & Create Order",
+    "productUnavailable": "Item is currently marked unavailable",
+    "cancel": "Cancel"
+  }
+}
