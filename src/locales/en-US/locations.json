@@ -1,0 +1,89 @@
+{
+  "title": "Locations",
+  "subtitle": "Every restaurant in this organization: details, hours, managers and recent performance.",
+  "add": "Add location",
+  "limitReached": "Your plan's location limit has been reached. Upgrade to add more.",
+  "planUsage": "{{plan}} plan · locations in use",
+  "planRemaining_one": "{{count}} more location available on this plan",
+  "planRemaining_other": "{{count}} more locations available on this plan",
+  "addressMissing": "Address not provided yet",
+  "status": {
+    "verified": "Verified",
+    "placeholder": "Needs setup",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "metrics": {
+    "sales": "Sales · 30d",
+    "orders": "Orders · 30d",
+    "growth": "Growth"
+  },
+  "timezone": "Time zone",
+  "hours": "Hours",
+  "notConfigured": "Not configured",
+  "manager": "Manager",
+  "unassigned": "Unassigned",
+  "openDashboard": "Open dashboard",
+  "edit": "Edit",
+  "completeSetup": "Complete setup",
+  "placeholderNote": "Verified locations use details from the restaurant's public website. Locations marked \"Needs setup\" are placeholders until the owner adds a real name and address. All performance figures are synthetic demo data.",
+  "planUsageShort": "Locations used",
+  "inactiveFree": "Inactive locations don't count toward your plan.",
+  "empty": {
+    "title": "No locations yet",
+    "body": "Add your first location to start configuring hours and managers.",
+    "unassignedTitle": "No stores assigned to you",
+    "unassignedBody": "Ask an owner to give you access to the stores you work at."
+  },
+  "phone": "Phone",
+  "openDays_one": "Open {{count}} day a week",
+  "openDays_other": "Open {{count}} days a week",
+  "activate": "Activate",
+  "deactivate": "Deactivate",
+  "closed": "Closed",
+  "managers": "Store managers",
+  "noManagers": "No managers in this organization yet. Invite one from Team & access.",
+  "editTitle": "Edit location",
+  "toast": {
+    "created": "Location created.",
+    "saved": "Location saved.",
+    "activated": "Location activated.",
+    "deactivated": "Location deactivated."
+  },
+  "create": {
+    "title": "Add a location",
+    "body": "New locations start active and count toward your plan.",
+    "submit": "Add location"
+  },
+  "form": {
+    "details": "Details",
+    "name": "Location name",
+    "address": "Address",
+    "phone": "Phone",
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "opens": "Opens",
+    "closes": "Closes",
+    "verifiedNote": "Changing the address removes the verified mark."
+  },
+  "days": {
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "sat": "Sat",
+    "sun": "Sun"
+  },
+  "errors": {
+    "store_limit": "Your plan's location limit has been reached.",
+    "org_suspended": "This organization is paused. Changes are disabled.",
+    "subscription_inactive": "The subscription is inactive. Changes are disabled.",
+    "forbidden": "You don't have permission to do that.",
+    "invalid_timezone": "Choose a valid time zone.",
+    "invalid_name": "Enter a name with at least 2 characters.",
+    "invalid_hours": "Check the highlighted opening hours.",
+    "address_required": "Add an address before activating this location.",
+    "unknown": "Something went wrong. Please try again."
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "eyebrow": "Settings",
+  "branding": {
+    "title": "Branding & appearance",
+    "subtitle": "Upload {{org}}'s logo and Servora suggests an accessible light and dark theme. Branding is cosmetic only and never changes access permissions.",
+    "restore": "Restore previous",
+    "reset": "Reset to default",
+    "apply": "Apply theme"
+  },
+  "logo": {
+    "title": "Logo",
+    "subtitle": "Drag a file here or choose one to upload.",
+    "upload": "Upload logo",
+    "replace": "Upload new logo",
+    "analyze": "Generate palette",
+    "remove": "Remove logo",
+    "formats": "PNG, JPEG, SVG or WebP · up to 2 MB",
+    "fallback": "Without a logo, the workspace shows the organization's initials and the default theme.",
+    "ownerOnly": "Only owners can change branding. You can view it here."
+  },
+  "palette": {
+    "title": "Brand colors",
+    "subtitleDetected_one": "{{count}} color detected in your logo",
+    "subtitleDetected_other": "{{count}} colors detected in your logo",
+    "subtitleEmpty": "Generate from your logo or enter HEX values.",
+    "detected": "Detected colors",
+    "usePrimary": "Use {{hex}} as primary color",
+    "asAccent": "Accent",
+    "primary": "Primary",
+    "accent": "Accent"
+  },
+  "errors": {
+    "noColors": "We couldn't find distinct brand colors in this logo. Enter colors manually.",
+    "readFailed": "This image couldn't be analyzed. Try another file.",
+    "type": "Unsupported file type. Use PNG, JPEG, SVG or WebP.",
+    "size": "This file is larger than 2 MB.",
+    "hex": "Use a 6-digit HEX value, like #D63C46.",
+    "saveFailed": "Your theme could not be saved. Only an owner can change branding in an active workspace."
+  },
+  "toast": {
+    "generated": "Palette generated from your logo",
+    "restored": "Previous theme restored",
+    "reset": "Theme reset to the organization default",
+    "saved": "Theme applied to the workspace"
+  },
+  "contrast": {
+    "title": "Accessibility check",
+    "subtitle": "WCAG 2.2 AA contrast for key pairs",
+    "pair": "Pair",
+    "mode": "Mode",
+    "ratio": "Ratio",
+    "light": "Light",
+    "dark": "Dark",
+    "pairs": {
+      "bodyText": "Body text",
+      "mutedText": "Secondary text",
+      "primaryButton": "Primary button",
+      "accentChip": "Accent chip",
+      "sidebarActive": "Active nav item",
+      "focusRing": "Focus ring"
+    }
+  },
+  "preview": {
+    "title": "Live preview",
+    "subtitle": "How the workspace will look with this theme",
+    "chip": "Accent",
+    "primaryAction": "Primary action",
+    "secondaryAction": "Secondary"
+  },
+  "engineNote": "",
+  "billing": {
+    "eyebrow": "Settings",
+    "title": "Billing",
+    "subtitle": "Subscription and billing for {{org}}.",
+    "notConnected": "Online payments aren't connected yet, so no card is charged. Plans and prices shown here are placeholders and are changed by the Servora team for now.",
+    "subscription": "Subscription",
+    "noSubscription": "No subscription on file.",
+    "plan": "Plan",
+    "status": "Status",
+    "billedLocations": "Locations billed / allowed",
+    "trialEnds": "Trial ends",
+    "graceEnds": "Grace period ends",
+    "renews": "Next renewal",
+    "cancelsAtEnd": "Cancels at period end",
+    "history": "Billing history",
+    "noHistory": "No invoices or payments yet.",
+    "plans": "Plans",
+    "plansNote": "Monthly, billed per active location. Placeholder pricing.",
+    "perLocation": "{{price}} / location / mo",
+    "custom": "Custom",
+    "planMeta_one": "Up to {{count}} location · {{days}}-day trial",
+    "planMeta_other": "Up to {{count}} locations · {{days}}-day trial",
+    "ownerOnlyTitle": "Owners only",
+    "ownerOnlyBody": "Billing is visible only to organization owners.",
+    "statuses": {
+      "trialing": "Trial",
+      "active": "Active",
+      "past_due": "Payment overdue",
+      "grace": "Grace period",
+      "unpaid": "Unpaid",
+      "canceled": "Canceled",
+      "incomplete": "Incomplete"
+    }
+  }
+}

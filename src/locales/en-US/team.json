@@ -1,0 +1,140 @@
+{
+  "onboarding": {
+    "eyebrow": "Get started",
+    "title": "Set up your restaurant workspace",
+    "subtitle": "Create a fictional restaurant for pre-launch testing. You become its owner; no payments are connected.",
+    "orgName": "Restaurant or group name",
+    "orgPlaceholder": "e.g. Riverside Kitchen",
+    "location": "First location name",
+    "locationPlaceholder": "e.g. Downtown",
+    "color": "Brand color",
+    "submit": "Create workspace",
+    "invitedTitle": "Joining an existing restaurant?",
+    "invitedBody": "Ask your manager to send an invitation to {{email}}. Existing workspaces are never opened to new accounts automatically.",
+    "signOut": "Sign out",
+    "created": "Workspace created.",
+    "stepsTitle": "What happens next",
+    "step1": "Create your workspace — you become its owner.",
+    "step2": "Add stores and upload your logo to brand the app.",
+    "step3": "Invite managers and staff to the stores they work at.",
+    "trialNote": "Starts as a free trial with demo figures. No payment details needed.",
+    "locationHint": "Optional — you can add or rename stores later.",
+    "companyName": "Company name (optional)",
+    "companyAddress": "Company address (optional)",
+    "persistedTest": "Persisted test organization",
+    "progressTitle": "Restaurant setup",
+    "progress": "Step {{current}} of {{total}}",
+    "openStep": "Open step",
+    "continue": "Continue",
+    "finish": "Finish setup",
+    "saveFailed": "Your progress could not be saved. Try again.",
+    "stages": [
+      {
+        "title": "Create your visual identity",
+        "body": "Upload a logo, adjust colors, and apply your theme."
+      },
+      {
+        "title": "Preview your dashboard",
+        "body": "Review the demo figures and your restaurant’s appearance."
+      },
+      {
+        "title": "Configure your stores",
+        "body": "Complete store details and manage locations within your plan allowance."
+      },
+      {
+        "title": "Invite your team",
+        "body": "Create private invitations with the appropriate roles and store access. You can do this later."
+      },
+      {
+        "title": "Open your workspace",
+        "body": "Your saved test restaurant is ready to explore. All performance figures remain demo data."
+      }
+    ],
+    "optional": "optional",
+    "skip": "Skip for now",
+    "teamLoadFailed": "Couldn't check your team. Progress is unchanged; try again.",
+    "state": {
+      "done": "done",
+      "todo": "to do",
+      "skipped": "skipped"
+    },
+    "blocked": {
+      "0": "Save a logo or brand colors first.",
+      "2": "Add an address and opening hours to at least one store first.",
+      "4": "Finish branding and store setup first."
+    }
+  },
+  "page": {
+    "eyebrow": "Settings",
+    "title": "Team & access",
+    "subtitle": "People who can access {{org}}. Roles control what each person can see and change.",
+    "members": "Members",
+    "pending": "Pending invitations",
+    "noPending": "No pending invitations.",
+    "you": "You",
+    "unnamed": "Unnamed member",
+    "expires": "Expires {{date}}",
+    "revoke": "Withdraw",
+    "revoked": "Invitation withdrawn.",
+    "membersCount_one": "{{count}} person",
+    "membersCount_other": "{{count}} people",
+    "allStores": "All stores",
+    "noStores": "No stores assigned",
+    "noStoresAvailable": "No stores available to assign.",
+    "changeRole": "Change role",
+    "roleChanged": "Role updated.",
+    "assignStores": "Assign stores",
+    "assignBody": "Choose which stores {{name}} can access.",
+    "storesSaved": "Store access updated.",
+    "remove": "Remove",
+    "removeTitle": "Remove {{name}}?",
+    "removeBody": "They will immediately lose access to {{org}}. This is recorded in the activity log.",
+    "removed": "Member removed.",
+    "expired": "Expired — can no longer be accepted"
+  },
+  "invite": {
+    "title": "Invite a teammate",
+    "subtitle": "They'll get access only to this organization, and only to the stores you choose, after accepting with the same email.",
+    "email": "Email",
+    "role": "Role",
+    "submit": "Create invitation",
+    "linkTitle": "Invitation link ready",
+    "linkBody": "Share this private link with {{email}}. It works once and expires in 7 days.",
+    "copy": "Copy link",
+    "copied": "Link copied.",
+    "readOnly": "Only owners and managers can invite people.",
+    "error": "We couldn't create that invitation.",
+    "stores": "Store access",
+    "noStores": "You can invite staff only to stores assigned to you. Ask an owner to assign you a store first."
+  },
+  "roleHelp": {
+    "owner": "Full control, billing and branding",
+    "manager": "Runs assigned stores and invites staff to them",
+    "staff": "Day-to-day operations"
+  },
+  "activity": {
+    "title": "Recent activity",
+    "subtitle": "Membership, invitation and store changes in this organization.",
+    "empty": "No activity yet."
+  },
+  "errors": {
+    "last_owner_or_unknown": "That change isn't allowed. An organization must always keep at least one owner."
+  },
+  "perms": {
+    "title": "Permissions by role",
+    "subtitle": "Enforced by the server for every request.",
+    "action": "Action",
+    "scoped": "Assigned stores",
+    "yes": "Allowed",
+    "no": "Not allowed",
+    "rows": {
+      "viewDashboard": "View performance",
+      "editLocations": "Edit store details and hours",
+      "addLocations": "Add or deactivate stores",
+      "inviteStaff": "Invite staff",
+      "inviteManagers": "Invite managers or owners",
+      "changeRoles": "Change roles",
+      "billing": "Billing and plan"
+    }
+  }
+}

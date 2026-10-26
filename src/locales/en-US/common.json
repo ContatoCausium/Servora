@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "workspace": "Workspace",
+    "comingNext": "Coming next",
+    "notYetAvailable": "Not available in this demo yet",
+    "overview": "Overview",
+    "locations": "Locations",
+    "branding": "Branding",
+    "liveOps": "Live operations",
+    "orders": "Orders",
+    "pos": "Point of sale",
+    "kds": "Kitchen display",
+    "menu": "Menu",
+    "inventory": "Inventory",
+    "employees": "Team & access",
+    "finance": "Finance",
+    "analytics": "Analytics",
+    "controlCenter": "Control Center",
+    "more": "More",
+    "platform": "Platform",
+    "billing": "Billing"
+  },
+  "a11y": {
+    "mainNav": "Main navigation",
+    "mobileNav": "Quick navigation",
+    "skipToContent": "Skip to content",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "openMenu": "Open menu"
+  },
+  "shell": {
+    "switchOrg": "Switch organization",
+    "locationCount_one": "{{count}} location",
+    "locationCount_other": "{{count}} locations",
+    "organizations": "Organizations",
+    "selectLocation": "Select location",
+    "allLocations": "All locations",
+    "consolidatedView": "Consolidated view",
+    "configRequired": "Configuration required",
+    "placeholder": "Placeholder",
+    "notifications": "Notifications",
+    "account": "Account and preferences",
+    "demoOwner": "Demo Owner",
+    "ownerRole": "Organization owner",
+    "language": "Language",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode",
+    "search": "Search…",
+    "searchPlaceholder": "Search pages and locations…",
+    "noResults": "No results found.",
+    "poweredBy": "Powered by Servora",
+    "signOut": "Sign out"
+  },
+  "plans": {
+    "starter": "Starter",
+    "growth": "Growth",
+    "professional": "Professional",
+    "enterprise": "Enterprise"
+  },
+  "demo": {
+    "badge": "Demo data",
+    "fictional": "Fictional",
+    "disclaimer": "All sales, orders, inventory and alert figures shown are synthetic demonstration data. They do not represent real business results, and no POS, payment or delivery system is connected."
+  },
+  "states": {
+    "loading": "Loading…",
+    "errorTitle": "This page couldn't load",
+    "errorBody": "Your data is safe. Check your connection and try again.",
+    "retry": "Try again",
+    "suspendedTitle": "This workspace is paused",
+    "suspendedBody": "Access to this organization has been suspended by the platform. Contact Servora support to restore it.",
+    "reason": "Reason: {{reason}}",
+    "noStoresTitle": "No stores assigned yet",
+    "noStoresBody": "Ask an owner or manager to give you access to the stores you work at.",
+    "network": "Connection failed. Please try again.",
+    "forbidden": "You do not have permission to access this data.",
+    "backend": "The service could not load your data. Please try again.",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "This page does not exist or has moved.",
+    "home": "Go home",
+    "controlDenied": "The Control Center is only available to platform administrators."
+  }
+}

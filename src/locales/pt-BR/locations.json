@@ -1,0 +1,89 @@
+{
+  "title": "Unidades",
+  "subtitle": "Todas as unidades desta organização: dados, horários, gerentes e desempenho recente.",
+  "add": "Adicionar unidade",
+  "limitReached": "O limite de unidades do seu plano foi atingido. Faça upgrade para adicionar mais.",
+  "planUsage": "Plano {{plan}} · unidades em uso",
+  "planRemaining_one": "Mais {{count}} unidade disponível neste plano",
+  "planRemaining_other": "Mais {{count}} unidades disponíveis neste plano",
+  "addressMissing": "Endereço ainda não informado",
+  "status": {
+    "verified": "Verificada",
+    "placeholder": "Precisa de configuração",
+    "active": "Ativa",
+    "inactive": "Inativa"
+  },
+  "metrics": {
+    "sales": "Vendas · 30d",
+    "orders": "Pedidos · 30d",
+    "growth": "Crescimento"
+  },
+  "timezone": "Fuso horário",
+  "hours": "Horário",
+  "notConfigured": "Não configurado",
+  "manager": "Gerente",
+  "unassigned": "Não atribuído",
+  "openDashboard": "Abrir painel",
+  "edit": "Editar",
+  "completeSetup": "Concluir configuração",
+  "placeholderNote": "Unidades verificadas usam dados do site público do restaurante. Unidades marcadas como \"Precisa de configuração\" são provisórias até o proprietário informar nome e endereço reais. Todos os números de desempenho são dados de demonstração.",
+  "planUsageShort": "Unidades em uso",
+  "inactiveFree": "Unidades inativas não contam no seu plano.",
+  "empty": {
+    "title": "Nenhuma unidade ainda",
+    "body": "Adicione a primeira unidade para configurar horários e gerentes.",
+    "unassignedTitle": "Nenhuma loja atribuída a você",
+    "unassignedBody": "Peça a um proprietário acesso às lojas em que você trabalha."
+  },
+  "phone": "Telefone",
+  "openDays_one": "Aberta {{count}} dia por semana",
+  "openDays_other": "Aberta {{count}} dias por semana",
+  "activate": "Ativar",
+  "deactivate": "Desativar",
+  "closed": "Fechado",
+  "managers": "Gerentes da unidade",
+  "noManagers": "Ainda não há gerentes nesta organização. Convide um em Equipe e acesso.",
+  "editTitle": "Editar unidade",
+  "toast": {
+    "created": "Unidade criada.",
+    "saved": "Unidade salva.",
+    "activated": "Unidade ativada.",
+    "deactivated": "Unidade desativada."
+  },
+  "create": {
+    "title": "Adicionar unidade",
+    "body": "Novas unidades começam ativas e contam no seu plano.",
+    "submit": "Adicionar unidade"
+  },
+  "form": {
+    "details": "Dados",
+    "name": "Nome da unidade",
+    "address": "Endereço",
+    "phone": "Telefone",
+    "save": "Salvar alterações",
+    "cancel": "Cancelar",
+    "opens": "Abre",
+    "closes": "Fecha",
+    "verifiedNote": "Alterar o endereço remove a marca de verificada."
+  },
+  "days": {
+    "mon": "Seg",
+    "tue": "Ter",
+    "wed": "Qua",
+    "thu": "Qui",
+    "fri": "Sex",
+    "sat": "Sáb",
+    "sun": "Dom"
+  },
+  "errors": {
+    "store_limit": "O limite de unidades do seu plano foi atingido.",
+    "org_suspended": "Esta organização está pausada. Alterações desativadas.",
+    "subscription_inactive": "A assinatura está inativa. Alterações desativadas.",
+    "forbidden": "Você não tem permissão para isso.",
+    "invalid_timezone": "Escolha um fuso horário válido.",
+    "invalid_name": "Digite um nome com pelo menos 2 caracteres.",
+    "invalid_hours": "Confira os horários destacados.",
+    "address_required": "Adicione um endereço antes de ativar esta unidade.",
+    "unknown": "Algo deu errado. Tente novamente."
+  }
+}

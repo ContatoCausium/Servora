@@ -1,0 +1,99 @@
+{
+  "title": "Visão executiva",
+  "subtitle": "{{scope}} · até {{date}}",
+  "range": {
+    "label": "Período",
+    "7": "7 dias",
+    "30": "30 dias",
+    "90": "90 dias"
+  },
+  "kpi": {
+    "sectionLabel": "Indicadores-chave de desempenho",
+    "gross": "Vendas brutas",
+    "net": "Vendas líquidas",
+    "orders": "Total de pedidos",
+    "aov": "Ticket médio",
+    "growth": "Crescimento",
+    "open": "Pedidos em aberto",
+    "cancelled": "Pedidos cancelados",
+    "refunds": "Reembolsos",
+    "foodCost": "Custo de insumos (est.)",
+    "margin": "Margem bruta (est.)",
+    "growthHint": "Vendas brutas em relação aos {{days}} dias anteriores",
+    "openHint": "Pedidos em andamento agora",
+    "foodCostHint": "Estimado em {{rate}} das vendas líquidas até as fichas técnicas serem cadastradas",
+    "marginHint": "Vendas líquidas menos o custo estimado de insumos. Não é lucro.",
+    "vsPrevious": "vs. período anterior",
+    "secondary": "Operação e margem",
+    "period": "Últimos {{days}} dias"
+  },
+  "revenue": {
+    "title": "Faturamento",
+    "subtitleStacked": "Vendas brutas diárias, empilhadas por unidade",
+    "subtitleSingle": "Vendas brutas diárias comparadas ao período anterior",
+    "previous": "Período anterior",
+    "total": "Vendas brutas, {{days}} dias",
+    "peak": "Melhor dia"
+  },
+  "alerts": {
+    "title": "Alertas operacionais",
+    "subtitle_one": "{{count}} item precisa de atenção",
+    "subtitle_other": "{{count}} itens precisam de atenção",
+    "severity": {
+      "high": "Alta",
+      "medium": "Média",
+      "low": "Baixa"
+    },
+    "lowInventory": {
+      "title_one": "{{count}} insumo abaixo do mínimo",
+      "title_other": "{{count}} insumos abaixo do mínimo",
+      "detail": "Repor antes do jantar"
+    },
+    "delayedOrders": {
+      "title_one": "{{count}} pedido atrasado",
+      "title_other": "{{count}} pedidos atrasados",
+      "detail": "Mais de 15 minutos na cozinha"
+    },
+    "pendingApproval": {
+      "title_one": "{{count}} reembolso aguardando aprovação",
+      "title_other": "{{count}} reembolsos aguardando aprovação",
+      "detail": "Requer aprovação do gerente"
+    },
+    "salesVariation": {
+      "title_one": "Queda incomum nas vendas",
+      "title_other": "Quedas incomuns nas vendas",
+      "detail": "Almoço 22% abaixo do habitual"
+    },
+    "missingClosing": {
+      "title_one": "Fechamento do dia pendente",
+      "title_other": "{{count}} fechamentos do dia pendentes",
+      "detail": "Caixa não foi fechado ontem"
+    },
+    "empty": "Nenhum alerta aberto. Tudo funcionando normalmente.",
+    "view": "Alertas de demonstração — não conectados à operação real"
+  },
+  "compare": {
+    "title": "Comparativo de unidades",
+    "subtitle": "Vendas brutas e crescimento · últimos {{days}} dias",
+    "all": "Todas as unidades",
+    "orders": "{{value}} pedidos",
+    "aov": "{{value}} médio",
+    "share": "{{value}} do total"
+  },
+  "hourly": {
+    "title": "Pedidos por hora",
+    "subtitle": "Dia típico · pico às {{hour}}",
+    "orders": "Pedidos"
+  },
+  "channels": {
+    "title": "Canais de pedido",
+    "dineIn": "No salão",
+    "pickup": "Retirada",
+    "delivery": "Delivery"
+  },
+  "topItems": {
+    "title": "Itens mais vendidos",
+    "subtitle": "Unidades vendidas, do cardápio publicado",
+    "empty": "Nenhum produto de demonstração disponível ainda."
+  }
+}

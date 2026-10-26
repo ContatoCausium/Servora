@@ -1,0 +1,140 @@
+{
+  "onboarding": {
+    "eyebrow": "Primeiros passos",
+    "title": "Configure o workspace do seu restaurante",
+    "subtitle": "Crie um restaurante fictício para testes de pré-lançamento. Você será o proprietário; não há pagamentos conectados.",
+    "orgName": "Nome do restaurante ou grupo",
+    "orgPlaceholder": "ex.: Cozinha da Praça",
+    "location": "Nome da primeira unidade",
+    "locationPlaceholder": "ex.: Centro",
+    "color": "Cor da marca",
+    "submit": "Criar workspace",
+    "invitedTitle": "Vai entrar em um restaurante existente?",
+    "invitedBody": "Peça ao seu gerente para enviar um convite para {{email}}. Workspaces existentes nunca são abertos automaticamente para novas contas.",
+    "signOut": "Sair",
+    "created": "Workspace criado.",
+    "stepsTitle": "Próximos passos",
+    "step1": "Crie seu workspace — você será o proprietário.",
+    "step2": "Adicione unidades e envie seu logo para personalizar o app.",
+    "step3": "Convide gerentes e equipe para as unidades em que trabalham.",
+    "trialNote": "Começa como teste gratuito com números de demonstração. Nenhum dado de pagamento é necessário.",
+    "locationHint": "Opcional — você pode adicionar ou renomear unidades depois.",
+    "companyName": "Razão social (opcional)",
+    "companyAddress": "Endereço da empresa (opcional)",
+    "persistedTest": "Organização de teste salva",
+    "progressTitle": "Configuração do restaurante",
+    "progress": "Etapa {{current}} de {{total}}",
+    "openStep": "Abrir etapa",
+    "continue": "Continuar",
+    "finish": "Concluir configuração",
+    "saveFailed": "Não foi possível salvar seu progresso. Tente novamente.",
+    "stages": [
+      {
+        "title": "Crie sua identidade visual",
+        "body": "Envie um logotipo, ajuste as cores e aplique seu tema."
+      },
+      {
+        "title": "Confira seu painel",
+        "body": "Veja os números de demonstração e a aparência do seu restaurante."
+      },
+      {
+        "title": "Configure suas unidades",
+        "body": "Complete os dados e gerencie as unidades dentro do limite do plano."
+      },
+      {
+        "title": "Convide sua equipe",
+        "body": "Crie convites privados com as funções e unidades corretas. Você pode fazer isso depois."
+      },
+      {
+        "title": "Abra seu workspace",
+        "body": "Seu restaurante de teste salvo está pronto para explorar. Todos os indicadores continuam sendo dados de demonstração."
+      }
+    ],
+    "optional": "opcional",
+    "skip": "Pular por enquanto",
+    "teamLoadFailed": "Não foi possível verificar sua equipe. O progresso não mudou; tente novamente.",
+    "state": {
+      "done": "concluída",
+      "todo": "pendente",
+      "skipped": "pulada"
+    },
+    "blocked": {
+      "0": "Salve um logo ou as cores da marca primeiro.",
+      "2": "Adicione endereço e horários a pelo menos uma loja primeiro.",
+      "4": "Conclua o branding e a configuração da loja primeiro."
+    }
+  },
+  "page": {
+    "eyebrow": "Configurações",
+    "title": "Equipe e acesso",
+    "subtitle": "Pessoas com acesso a {{org}}. Os papéis definem o que cada pessoa pode ver e alterar.",
+    "members": "Membros",
+    "pending": "Convites pendentes",
+    "noPending": "Nenhum convite pendente.",
+    "you": "Você",
+    "unnamed": "Membro sem nome",
+    "expires": "Expira em {{date}}",
+    "revoke": "Cancelar",
+    "revoked": "Convite cancelado.",
+    "membersCount_one": "{{count}} pessoa",
+    "membersCount_other": "{{count}} pessoas",
+    "allStores": "Todas as unidades",
+    "noStores": "Nenhuma unidade atribuída",
+    "noStoresAvailable": "Nenhuma unidade disponível para atribuir.",
+    "changeRole": "Alterar função",
+    "roleChanged": "Função atualizada.",
+    "assignStores": "Atribuir unidades",
+    "assignBody": "Escolha quais unidades {{name}} pode acessar.",
+    "storesSaved": "Acesso às unidades atualizado.",
+    "remove": "Remover",
+    "removeTitle": "Remover {{name}}?",
+    "removeBody": "A pessoa perderá o acesso a {{org}} imediatamente. Isso fica registrado no histórico de atividades.",
+    "removed": "Membro removido.",
+    "expired": "Expirado — não pode mais ser aceito"
+  },
+  "invite": {
+    "title": "Convidar alguém da equipe",
+    "subtitle": "A pessoa terá acesso apenas a esta organização, e somente às unidades escolhidas, após aceitar com o mesmo e-mail.",
+    "email": "E-mail",
+    "role": "Papel",
+    "submit": "Criar convite",
+    "linkTitle": "Link de convite pronto",
+    "linkBody": "Compartilhe este link privado com {{email}}. Ele funciona uma vez e expira em 7 dias.",
+    "copy": "Copiar link",
+    "copied": "Link copiado.",
+    "readOnly": "Apenas proprietários e gerentes podem convidar pessoas.",
+    "error": "Não foi possível criar o convite.",
+    "stores": "Acesso às unidades",
+    "noStores": "Você só pode convidar funcionários para lojas atribuídas a você. Peça a um proprietário que atribua uma loja primeiro."
+  },
+  "roleHelp": {
+    "owner": "Controle total, cobrança e marca",
+    "manager": "Administra as unidades atribuídas e convida funcionários para elas",
+    "staff": "Operação do dia a dia"
+  },
+  "activity": {
+    "title": "Atividade recente",
+    "subtitle": "Alterações de membros, convites e unidades nesta organização.",
+    "empty": "Nenhuma atividade ainda."
+  },
+  "errors": {
+    "last_owner_or_unknown": "Essa alteração não é permitida. Uma organização precisa ter sempre pelo menos um proprietário."
+  },
+  "perms": {
+    "title": "Permissões por função",
+    "subtitle": "Aplicadas pelo servidor em cada solicitação.",
+    "action": "Ação",
+    "scoped": "Unidades atribuídas",
+    "yes": "Permitido",
+    "no": "Não permitido",
+    "rows": {
+      "viewDashboard": "Ver desempenho",
+      "editLocations": "Editar dados e horários da unidade",
+      "addLocations": "Adicionar ou desativar unidades",
+      "inviteStaff": "Convidar funcionários",
+      "inviteManagers": "Convidar gerentes ou proprietários",
+      "changeRoles": "Alterar funções",
+      "billing": "Cobrança e plano"
+    }
+  }
+}

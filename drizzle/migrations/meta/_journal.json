@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792778692760,
+      "tag": "0000_auth_orgs_memberships",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792780163558,
+      "tag": "0001_tenant_hardening_audit_control_center",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792780278079,
+      "tag": "0002_members_audit_allow_org_delete",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792781139137,
+      "tag": "0003_locations_team_billing_bootstrap",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792782618634,
+      "tag": "0004_plan_entitlements_and_billing_prep",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792784625630,
+      "tag": "0005_admin_org_insights",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792786503225,
+      "tag": "0006_restaurant_onboarding_branding",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793020023140,
+      "tag": "0007_phase0_location_hours_validation",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793022766805,
+      "tag": "0008_phase1_atomic_location_save",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793023007248,
+      "tag": "0009_phase1_onboarding_step_requirements",
+      "breakpoints": true
+    }
+  ]
+}

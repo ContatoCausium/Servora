@@ -1,0 +1,83 @@
+{
+  "nav": {
+    "workspace": "Espaço de trabalho",
+    "comingNext": "Em breve",
+    "notYetAvailable": "Ainda não disponível nesta demonstração",
+    "overview": "Visão geral",
+    "locations": "Unidades",
+    "branding": "Identidade visual",
+    "liveOps": "Operação ao vivo",
+    "orders": "Pedidos",
+    "pos": "Ponto de venda",
+    "kds": "Tela da cozinha",
+    "menu": "Cardápio",
+    "inventory": "Estoque",
+    "employees": "Equipe e acessos",
+    "finance": "Financeiro",
+    "analytics": "Relatórios",
+    "controlCenter": "Central de Controle",
+    "more": "Mais",
+    "platform": "Plataforma",
+    "billing": "Cobrança"
+  },
+  "a11y": {
+    "mainNav": "Navegação principal",
+    "mobileNav": "Navegação rápida",
+    "skipToContent": "Pular para o conteúdo",
+    "expandSidebar": "Expandir menu lateral",
+    "collapseSidebar": "Recolher menu lateral",
+    "openMenu": "Abrir menu"
+  },
+  "shell": {
+    "switchOrg": "Trocar organização",
+    "locationCount_one": "{{count}} unidade",
+    "locationCount_other": "{{count}} unidades",
+    "organizations": "Organizações",
+    "selectLocation": "Selecionar unidade",
+    "allLocations": "Todas as unidades",
+    "consolidatedView": "Visão consolidada",
+    "configRequired": "Configuração pendente",
+    "placeholder": "Provisória",
+    "notifications": "Notificações",
+    "account": "Conta e preferências",
+    "demoOwner": "Proprietário Demo",
+    "ownerRole": "Proprietário da organização",
+    "language": "Idioma",
+    "lightMode": "Modo claro",
+    "darkMode": "Modo escuro",
+    "search": "Buscar…",
+    "searchPlaceholder": "Buscar páginas e unidades…",
+    "noResults": "Nenhum resultado encontrado.",
+    "poweredBy": "Desenvolvido com Servora",
+    "signOut": "Sair"
+  },
+  "plans": {
+    "starter": "Inicial",
+    "growth": "Crescimento",
+    "professional": "Profissional",
+    "enterprise": "Corporativo"
+  },
+  "demo": {
+    "badge": "Dados de demonstração",
+    "fictional": "Fictícia",
+    "disclaimer": "Todos os valores de vendas, pedidos, estoque e alertas exibidos são dados sintéticos de demonstração. Eles não representam resultados reais, e nenhum sistema de PDV, pagamento ou delivery está conectado."
+  },
+  "states": {
+    "loading": "Carregando…",
+    "errorTitle": "Não foi possível carregar esta página",
+    "errorBody": "Seus dados estão seguros. Verifique sua conexão e tente novamente.",
+    "retry": "Tentar novamente",
+    "suspendedTitle": "Este workspace está pausado",
+    "suspendedBody": "O acesso a esta organização foi suspenso pela plataforma. Fale com o suporte Servora para reativá-lo.",
+    "reason": "Motivo: {{reason}}",
+    "noStoresTitle": "Nenhuma loja atribuída ainda",
+    "noStoresBody": "Peça a um proprietário ou gerente para liberar o acesso às lojas em que você trabalha.",
+    "network": "Falha de conexão. Tente novamente.",
+    "forbidden": "Você não tem permissão para acessar estes dados.",
+    "backend": "Não foi possível carregar seus dados. Tente novamente.",
+    "notFoundTitle": "Página não encontrada",
+    "notFoundBody": "Esta página não existe ou foi movida.",
+    "home": "Ir para o início",
+    "controlDenied": "A Central de Controle está disponível apenas para administradores da plataforma."
+  }
+}

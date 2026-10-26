@@ -1,0 +1,105 @@
+{
+  "eyebrow": "Configurações",
+  "branding": {
+    "title": "Identidade visual",
+    "subtitle": "Envie o logotipo de {{org}} e o Servora sugere um tema claro e escuro acessível. A identidade visual é apenas estética e nunca altera permissões de acesso.",
+    "restore": "Restaurar anterior",
+    "reset": "Restaurar padrão",
+    "apply": "Aplicar tema"
+  },
+  "logo": {
+    "title": "Logotipo",
+    "subtitle": "Arraste um arquivo aqui ou escolha um para enviar.",
+    "upload": "Enviar logotipo",
+    "replace": "Enviar novo logotipo",
+    "analyze": "Gerar paleta",
+    "remove": "Remover logotipo",
+    "formats": "PNG, JPEG, SVG ou WebP · até 2 MB",
+    "fallback": "Sem logotipo, o espaço de trabalho mostra as iniciais da organização e o tema padrão.",
+    "ownerOnly": "Apenas proprietários podem alterar a marca. Aqui você pode apenas visualizá-la."
+  },
+  "palette": {
+    "title": "Cores da marca",
+    "subtitleDetected_one": "{{count}} cor detectada no seu logotipo",
+    "subtitleDetected_other": "{{count}} cores detectadas no seu logotipo",
+    "subtitleEmpty": "Gere a partir do logotipo ou informe valores HEX.",
+    "detected": "Cores detectadas",
+    "usePrimary": "Usar {{hex}} como cor principal",
+    "asAccent": "Destaque",
+    "primary": "Principal",
+    "accent": "Destaque"
+  },
+  "errors": {
+    "noColors": "Não encontramos cores marcantes neste logotipo. Informe as cores manualmente.",
+    "readFailed": "Não foi possível analisar esta imagem. Tente outro arquivo.",
+    "type": "Tipo de arquivo não suportado. Use PNG, JPEG, SVG ou WebP.",
+    "size": "Este arquivo tem mais de 2 MB.",
+    "hex": "Use um valor HEX de 6 dígitos, como #D63C46.",
+    "saveFailed": "Não foi possível salvar o tema. Apenas proprietários podem alterar a marca em um workspace ativo."
+  },
+  "toast": {
+    "generated": "Paleta gerada a partir do seu logotipo",
+    "restored": "Tema anterior restaurado",
+    "reset": "Tema restaurado para o padrão da organização",
+    "saved": "Tema aplicado ao espaço de trabalho"
+  },
+  "contrast": {
+    "title": "Verificação de acessibilidade",
+    "subtitle": "Contraste WCAG 2.2 AA dos pares principais",
+    "pair": "Par",
+    "mode": "Modo",
+    "ratio": "Razão",
+    "light": "Claro",
+    "dark": "Escuro",
+    "pairs": {
+      "bodyText": "Texto principal",
+      "mutedText": "Texto secundário",
+      "primaryButton": "Botão principal",
+      "accentChip": "Etiqueta de destaque",
+      "sidebarActive": "Item de menu ativo",
+      "focusRing": "Indicador de foco"
+    }
+  },
+  "preview": {
+    "title": "Pré-visualização",
+    "subtitle": "Como o espaço de trabalho ficará com este tema",
+    "chip": "Destaque",
+    "primaryAction": "Ação principal",
+    "secondaryAction": "Secundária"
+  },
+  "engineNote": "",
+  "billing": {
+    "eyebrow": "Configurações",
+    "title": "Cobrança",
+    "subtitle": "Assinatura e cobrança de {{org}}.",
+    "notConnected": "Os pagamentos online ainda não estão conectados, então nenhum cartão é cobrado. Os planos e preços aqui são provisórios e, por enquanto, alterados pela equipe Servora.",
+    "subscription": "Assinatura",
+    "noSubscription": "Nenhuma assinatura registrada.",
+    "plan": "Plano",
+    "status": "Status",
+    "billedLocations": "Unidades cobradas / permitidas",
+    "trialEnds": "Fim do teste",
+    "graceEnds": "Fim do período de carência",
+    "renews": "Próxima renovação",
+    "cancelsAtEnd": "Cancela no fim do período",
+    "history": "Histórico de cobrança",
+    "noHistory": "Ainda não há faturas ou pagamentos.",
+    "plans": "Planos",
+    "plansNote": "Mensal, cobrado por unidade ativa. Preços provisórios.",
+    "perLocation": "{{price}} / unidade / mês",
+    "custom": "Sob consulta",
+    "planMeta_one": "Até {{count}} unidade · teste de {{days}} dias",
+    "planMeta_other": "Até {{count}} unidades · teste de {{days}} dias",
+    "ownerOnlyTitle": "Somente proprietários",
+    "ownerOnlyBody": "A cobrança é visível apenas para os proprietários da organização.",
+    "statuses": {
+      "trialing": "Teste",
+      "active": "Ativa",
+      "past_due": "Pagamento atrasado",
+      "grace": "Período de carência",
+      "unpaid": "Não paga",
+      "canceled": "Cancelada",
+      "incomplete": "Incompleta"
+    }
+  }
+}
