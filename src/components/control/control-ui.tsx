@@ -85,18 +85,23 @@ export function EditOrgDialog({ org, onClose, onSaved }: { org: OrgRef; onClose:
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const validReason = reason.trim().length >= 3;
   const save = async () => {
+    if (!validReason) { setError(t("errors.reason_required")); return; }
     setBusy(true); setError(null);
     try {
-      // The plan sets the allowance; a store limit is sent only when changed (an audited exception).
       const n = Math.max(1, Math.min(500, Math.round(Number(limit) || org.store_limit)));
       await updateOrganization(org.id, { ...(plan !== org.plan ? { plan } : {}), ...(n !== org.store_limit ? { storeLimit: n } : {}) }, reason.trim());
       toast.success(t("saved")); await onSaved(); onClose();
-    } catch (e) { setError(errText(e)); } finally { setBusy(false); }
+    } catch (e) {
+      setError(errText(e));
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <Shell title={t("edit.title", { name: org.name })} description={t("edit.description")} onClose={onClose}
-      footer={<><button onClick={onClose} className={btnGhost}>{t("edit.cancel")}</button><button onClick={save} disabled={busy} className={btnPrimary}>{busy && <Loader2 className="size-4 animate-spin" />}{t("edit.save")}</button></>}>
+      footer={<><button onClick={onClose} className={btnGhost}>{t("edit.cancel")}</button><button onClick={save} disabled={busy || !validReason} className={btnPrimary}>{busy && <Loader2 className="size-4 animate-spin" />}{t("edit.save")}</button></>}>
       <div className="grid grid-cols-2 gap-3">
         <label className="grid gap-1.5 text-sm font-medium">{t("orgs.plan")}
           <select className={inputCls} value={plan} onChange={(e) => setPlan(e.target.value as PlanId)}>{PLANS.map((p) => <option key={p} value={p}>{t(`plans.${p}`)}</option>)}</select>
@@ -106,8 +111,8 @@ export function EditOrgDialog({ org, onClose, onSaved }: { org: OrgRef; onClose:
         </label>
       </div>
       <p className="text-xs text-muted-foreground">{t("edit.limitHint")}</p>
-      <label className="grid gap-1.5 text-sm font-medium">{t("edit.reason")}
-        <textarea className={cn(inputCls, "h-20 py-2")} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("edit.reasonPlaceholder")} />
+      <label className="grid gap-1.5 text-sm font-medium">{t("edit.reason")} *
+        <textarea required className={cn(inputCls, "h-20 py-2")} value={reason} onChange={(e) => { setReason(e.target.value); if (error) setError(null); }} placeholder={t("edit.reasonPlaceholder")} />
       </label>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </Shell>
@@ -121,7 +126,9 @@ export function StatusDialog({ org, onClose, onSaved }: { org: OrgRef; onClose: 
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const validReason = reason.trim().length >= 3;
   const save = async () => {
+    if (!validReason) { setError(t("errors.reason_required")); return; }
     setBusy(true); setError(null);
     try { await updateOrganization(org.id, { status: suspending ? "suspended" : "active" }, reason.trim()); toast.success(t("saved")); await onSaved(); onClose(); }
     catch (e) { setError(errText(e)); } finally { setBusy(false); }
@@ -129,9 +136,9 @@ export function StatusDialog({ org, onClose, onSaved }: { org: OrgRef; onClose: 
   return (
     <Shell title={t(suspending ? "suspend.title" : "suspend.reactivateTitle", { name: org.name })} description={t(suspending ? "suspend.description" : "suspend.reactivateDescription")} onClose={onClose}
       footer={<><button onClick={onClose} className={btnGhost}>{t("edit.cancel")}</button>
-        <button onClick={save} disabled={busy} className={cn(btnPrimary, suspending && "bg-destructive hover:bg-destructive/90")}>{busy && <Loader2 className="size-4 animate-spin" />}{t(suspending ? "suspend.confirm" : "suspend.reactivate")}</button></>}>
-      <label className="grid gap-1.5 text-sm font-medium">{t("edit.reason")}
-        <textarea className={cn(inputCls, "h-20 py-2")} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={t("edit.reasonPlaceholder")} />
+        <button onClick={save} disabled={busy || !validReason} className={cn(btnPrimary, suspending && "bg-destructive hover:bg-destructive/90")}>{busy && <Loader2 className="size-4 animate-spin" />}{t(suspending ? "suspend.confirm" : "suspend.reactivate")}</button></>}>
+      <label className="grid gap-1.5 text-sm font-medium">{t("edit.reason")} *
+        <textarea required className={cn(inputCls, "h-20 py-2")} value={reason} onChange={(e) => { setReason(e.target.value); if (error) setError(null); }} placeholder={t("edit.reasonPlaceholder")} />
       </label>
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </Shell>

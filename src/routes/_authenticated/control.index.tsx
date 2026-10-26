@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowUpRight, CircleSlash, History } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, CircleSlash, History, Sparkles } from "lucide-react";
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { DemoBadge } from "@/components/app/brand-mark";
 import { LoadFailure } from "@/components/control/load-failure";
@@ -54,7 +55,7 @@ function Overview() {
           </dl>
 
           <Section title={t("overview.revenue")} hint={o.billingConnected ? t("overview.revenueLive") : t("overview.revenueOff")}
-            action={!o.billingConnected && <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleSlash className="size-3" />{t("overview.billingOff")}</span>}>
+            action={<div className="flex items-center gap-2"><span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning"><Sparkles className="size-2.5" />{t("overview.projectedBadge", { defaultValue: "Estimate" })}</span>{!o.billingConnected && <span className="inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium text-muted-foreground"><CircleSlash className="size-3" />{t("overview.billingOff")}</span>}</div>}>
             <dl className="grid grid-cols-1 gap-px bg-border sm:grid-cols-3">
               <Metric label={t("overview.subscriptions")} value={o.activeSubscriptions === null ? t("overview.unavailable") : fmtNumber(o.activeSubscriptions, lng)} tone={o.activeSubscriptions === null ? "muted" : undefined} />
               <Metric label={t("overview.mrr")} value={o.actualMrrCents === null ? t("overview.unavailable") : fmtCurrency(o.actualMrrCents / 100, lng)} tone={o.actualMrrCents === null ? "muted" : undefined}
@@ -67,16 +68,27 @@ function Overview() {
 
           <div className="grid gap-6 lg:grid-cols-2">
             <Section title={t("overview.distribution")} hint={t("overview.distributionHint")}>
-              <ul className="grid gap-3 px-5 py-4">
+              <div className="h-44 px-4 pt-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={o.distribution.map((d) => ({ name: t(`plans.${d.plan}`, { defaultValue: d.plan }), customers: d.customers, demos: d.demos }))} margin={{ left: -20, right: 10, top: 10, bottom: 0 }}>
+                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                    <YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                    <Tooltip contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                    <Bar dataKey="customers" fill="var(--primary)" radius={[4, 4, 0, 0]} name={t("overview.customers")} />
+                    <Bar dataKey="demos" fill="var(--chart-2)" radius={[4, 4, 0, 0]} name={t("orgs.demo")} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <ul className="grid gap-2 border-t px-5 py-3">
                 {o.distribution.map((d) => {
                   const total = Math.max(1, o.customers + o.demos);
                   return (
-                    <li key={d.plan} className="grid gap-1.5">
-                      <div className="flex items-baseline justify-between text-sm">
+                    <li key={d.plan} className="grid gap-1">
+                      <div className="flex items-baseline justify-between text-xs">
                         <span className="font-medium">{t(`plans.${d.plan}`, { defaultValue: d.plan })}</span>
-                        <span className="tabular text-xs text-muted-foreground">{t("overview.distRow", { customers: d.customers, demos: d.demos })}</span>
+                        <span className="tabular text-muted-foreground">{t("overview.distRow", { customers: d.customers, demos: d.demos })}</span>
                       </div>
-                      <div className="flex h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div className="flex h-1 overflow-hidden rounded-full bg-muted">
                         <span className="bg-primary" style={{ width: `${(d.customers / total) * 100}%` }} />
                         <span className="demo-stripe bg-warning/40" style={{ width: `${(d.demos / total) * 100}%` }} />
                       </div>

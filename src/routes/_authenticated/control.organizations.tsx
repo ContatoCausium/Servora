@@ -49,12 +49,17 @@ function Organizations() {
   const [dialog, setDialog] = useState<Dialog>(null);
   const set = (patch: Partial<z.infer<typeof search>>) => void navigate({ search: (p) => ({ ...p, ...patch }), replace: true });
 
+  const [page, setPage] = useState(1);
+  const pageSize = 15;
+
   const rows = useMemo(() => (data?.orgs ?? []).filter((o) =>
     (!s.plan || s.plan === "all" || o.plan === s.plan) &&
     (!s.status || s.status === "all" || o.status === s.status) &&
     (!s.kind || s.kind === "all" || (s.kind === "demo") === o.is_demo) &&
     (!q || o.name.toLowerCase().includes(q.toLowerCase()) || (o.owner_email ?? "").toLowerCase().includes(q.toLowerCase())),
   ), [data, s, q]);
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  const paginatedRows = useMemo(() => rows.slice((page - 1) * pageSize, page * pageSize), [rows, page]);
   const selected = data?.orgs.find((o) => o.id === s.org) ?? null;
 
   return (
@@ -91,7 +96,7 @@ function Organizations() {
               <tr>{["name", "status", "plan", "stores", "owner", "trial", "created"].map((h) => <th key={h} className="px-4 py-2.5 font-medium">{t(`orgs.${h}`)}</th>)}</tr>
             </thead>
             <tbody className="divide-y">
-              {rows.map((o) => {
+              {paginatedRows.map((o) => {
                 const pct = Math.min(100, (o.active_store_count / Math.max(o.store_limit, 1)) * 100);
                 return (
                   <tr key={o.id} onClick={() => set({ org: o.id })} className="cursor-pointer hover:bg-muted/40">
@@ -115,6 +120,15 @@ function Organizations() {
               })}
             </tbody>
           </table>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t px-4 py-3 text-xs text-muted-foreground">
+              <span>{t("orgsPage.pagination", { current: page, total: totalPages, defaultValue: `Page ${page} of ${totalPages}` })}</span>
+              <div className="flex items-center gap-1.5">
+                <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className={cn(btnOutline, "h-7 px-2 text-xs disabled:opacity-40")}>{t("orgsPage.prev", { defaultValue: "Previous" })}</button>
+                <button disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className={cn(btnOutline, "h-7 px-2 text-xs disabled:opacity-40")}>{t("orgsPage.next", { defaultValue: "Next" })}</button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
