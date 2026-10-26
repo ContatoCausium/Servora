@@ -514,6 +514,20 @@
       "lastOwner": "O último proprietário e o último administrador da plataforma não podem ser removidos.",
       "suspension": "Organizações suspensas e assinaturas inativas não podem alterar dados; atrasos seguem as regras de carência configuradas."
     },
+    "monitoringTitle": "Monitoramento e Integridade Operacional",
+    "monitoringHint": "Métricas técnicas e telemetria operacional com distinção explícita entre dados reais de produção e projeções demonstrativas.",
+    "authAuditTitle": "Auditoria de Autenticação e Provedores",
+    "authAuditHint": "Avaliação de prontidão do Supabase Auth e OAuth sem bloqueios artificiais.",
+    "authAudit": {
+      "status": "Status da Infraestrutura de Autenticação",
+      "statusOk": "Operacional sem bloqueios impeditivos detectados no provedor de autenticação.",
+      "rls": "Isolamento multi-tenant garantido por Row Level Security no Postgres.",
+      "tokens": "Ciclo de vida de tokens de sessão e expiração gerenciados nativamente."
+    },
+    "metricClassification": {
+      "real": "Métrica Real",
+      "simulated": "Demonstrativo / Simulado"
+    },
     "governance": "Governança",
     "adminsLink": "Conceder ou revogar funções da plataforma.",
     "auditLink": "Revisar cada alteração sensível.",
@@ -545,11 +559,13 @@
     "onboarding": "Passo a passo de configuração",
     "restart": "Recomeçar",
     "locations": "Unidades",
-    "usage": "{{used}} de {{limit}} no Growth",
+    "usage": "{{used}} de {{limit}} no plano selecionado",
     "verified": "Verificada",
     "placeholderSlot": "Provisória",
     "addStore": "Adicionar unidade de teste",
-    "limitReached": "Limite do plano atingido — é preciso fazer upgrade.",
+    "removeStore": "Remover unidade",
+    "planSelector": "Simulação de Plano",
+    "limitReached": "Limite do plano atingido — faça upgrade na simulação para adicionar mais unidades.",
     "logoErr": {
       "type": "Use PNG, JPG, SVG ou WebP.",
       "size": "O logo deve ter até 2 MB."

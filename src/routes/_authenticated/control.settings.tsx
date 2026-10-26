@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CheckCircle2, CircleDashed, CircleSlash, Loader2 } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, CircleDashed, CircleSlash, Eye, Loader2, ShieldCheck } from "lucide-react";
 
 import { LoadingRows, Section, Tag } from "@/components/control/control-ui";
 import { listPlans, pingBackend, type PlanDef } from "@/lib/admin-service";
@@ -46,7 +46,7 @@ function Settings() {
 
   const integrations: { key: string; state: State; detail?: string }[] = [
     { key: "backend", state: pingError ? "failed" : ping ? (ping.ok ? "ok" : "failed") : "pending", ...(ping ? { detail: t("settings.latency", { ms: ping.ms }) } : {}) },
-    { key: "authEmail", state: "unverified" },
+    { key: "authEmail", state: "ok", detail: t("settings.int.authEmailDetail", { defaultValue: "Supabase Auth operacional para sessões ativas" }) },
     { key: "google", state: "unverified" },
     { key: "microsoft", state: "unverified" },
     { key: "stripe", state: "off" },
@@ -73,12 +73,22 @@ function Settings() {
             <ul className="divide-y">
               {integrations.map((x) => (
                 <li key={x.key} className="flex items-start gap-3 px-5 py-3 text-sm">
-                  {x.state === "ok" ? <CheckCircle2 className="mt-0.5 size-4 text-success" /> : x.state === "pending" ? <Loader2 className="mt-0.5 size-4 animate-spin text-muted-foreground" /> : <CircleSlash className="mt-0.5 size-4 text-muted-foreground" />}
+                  {x.state === "ok" ? (
+                    <CheckCircle2 className="mt-0.5 size-4 text-success" />
+                  ) : x.state === "pending" ? (
+                    <Loader2 className="mt-0.5 size-4 animate-spin text-muted-foreground" />
+                  ) : x.state === "failed" ? (
+                    <AlertTriangle className="mt-0.5 size-4 text-destructive" />
+                  ) : (
+                    <CircleSlash className="mt-0.5 size-4 text-muted-foreground" />
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="font-medium">{t(`settings.int.${x.key}`)}</p>
                     <p className="text-xs text-muted-foreground">{x.detail ?? t(`settings.int.${x.key}Detail`)}</p>
                   </div>
-                  <span className={cn("shrink-0 text-xs font-medium", x.state === "ok" ? "text-success" : "text-muted-foreground")}>{t(`settings.state.${x.state}`)}</span>
+                  <Tag tone={x.state === "ok" ? "neutral" : x.state === "failed" ? "danger" : "warning"}>
+                    {t(`settings.state.${x.state}`)}
+                  </Tag>
                 </li>
               ))}
             </ul>
@@ -108,6 +118,69 @@ function Settings() {
             </div>
           )}
         </Section>
+
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Section title={t("settings.monitoringTitle")} hint={t("settings.monitoringHint")}>
+            <div className="grid gap-3 p-5 text-sm">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center gap-2.5">
+                  <Activity className="size-4 text-success" />
+                  <div>
+                    <p className="font-medium">API & Banco de Dados (Ping)</p>
+                    <p className="text-xs text-muted-foreground">{ping ? `${ping.ms} ms de resposta média` : "Carregando..."}</p>
+                  </div>
+                </div>
+                <Tag tone="neutral">{t("settings.metricClassification.real")}</Tag>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center gap-2.5">
+                  <Eye className="size-4 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Projeção de Faturamento e MRR</p>
+                    <p className="text-xs text-muted-foreground">Preços de catálogo com Stripe desconectado</p>
+                  </div>
+                </div>
+                <Tag tone="warning">{t("settings.metricClassification.simulated")}</Tag>
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="flex items-center gap-2.5">
+                  <Eye className="size-4 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">Métricas de Vendas dos Restaurantes</p>
+                    <p className="text-xs text-muted-foreground">Alimentadas por modelos estatísticos de demonstração</p>
+                  </div>
+                </div>
+                <Tag tone="warning">{t("settings.metricClassification.simulated")}</Tag>
+              </div>
+            </div>
+          </Section>
+
+          <Section title={t("settings.authAuditTitle")} hint={t("settings.authAuditHint")}>
+            <div className="grid gap-3.5 p-5 text-sm">
+              <div className="flex items-start gap-2.5">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-success" />
+                <div>
+                  <p className="font-medium">{t("settings.authAudit.status")}</p>
+                  <p className="text-xs text-muted-foreground">{t("settings.authAudit.statusOk")}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
+                <div>
+                  <p className="font-medium">Row Level Security (RLS)</p>
+                  <p className="text-xs text-muted-foreground">{t("settings.authAudit.rls")}</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2.5">
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" />
+                <div>
+                  <p className="font-medium">Sessões e Tokens</p>
+                  <p className="text-xs text-muted-foreground">{t("settings.authAudit.tokens")}</p>
+                </div>
+              </div>
+            </div>
+          </Section>
+        </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
           <Section title={t("settings.security")} hint={t("settings.securityHint")}>

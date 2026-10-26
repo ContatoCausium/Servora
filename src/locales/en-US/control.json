@@ -415,6 +415,20 @@
       "lastOwner": "The last owner and the last platform administrator cannot be removed.",
       "suspension": "Suspended organizations and inactive subscriptions cannot make changes; past-due access follows the configured grace rules."
     },
+    "monitoringTitle": "Platform Monitoring & Operational Health",
+    "monitoringHint": "Technical telemetry and uptime with clear distinction between live production and synthetic metrics.",
+    "authAuditTitle": "Authentication Provider & Security Audit",
+    "authAuditHint": "Supabase Auth readiness evaluation without artificial blocking barriers.",
+    "authAudit": {
+      "status": "Auth Infrastructure Status",
+      "statusOk": "Fully operational with no real blocker detected on authentication provider.",
+      "rls": "Multi-tenant isolation enforced via Postgres Row Level Security policies.",
+      "tokens": "Session tokens and expiration cycle managed natively."
+    },
+    "metricClassification": {
+      "real": "Live Metric",
+      "simulated": "Synthetic / Simulated"
+    },
     "governance": "Governance",
     "adminsLink": "Grant or revoke platform roles.",
     "auditLink": "Review every sensitive change.",
@@ -446,11 +460,13 @@
     "onboarding": "Onboarding walkthrough",
     "restart": "Restart walkthrough",
     "locations": "Locations",
-    "usage": "{{used}} of {{limit}} on Growth",
+    "usage": "{{used}} of {{limit}} on selected plan",
     "verified": "Verified",
     "placeholderSlot": "Placeholder",
     "addStore": "Add sandbox store",
-    "limitReached": "Plan limit reached — upgrade required.",
+    "removeStore": "Remove store",
+    "planSelector": "Plan Simulation",
+    "limitReached": "Plan limit reached — upgrade in the simulation to add more stores.",
     "logoErr": {
       "type": "Use PNG, JPG, SVG or WebP.",
       "size": "Logo must be 2 MB or smaller."

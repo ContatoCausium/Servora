@@ -40,6 +40,7 @@ function DemoStudio() {
   const [tenantId, setTenantId] = useState<string>(SANDBOX_ID);
   const base = tenants.find((o) => o.id === tenantId);
   const [name, setName] = useState("Sandbox Bistro");
+  const [selectedPlan, setSelectedPlan] = useState<"starter" | "growth" | "enterprise">("growth");
   const [brand, setBrand] = useState<BrandColors>({ primary: "#3b6d5a", accent: "#d39b3a" });
   const [logo, setLogo] = useState<string | undefined>();
   const [logoErr, setLogoErr] = useState<string | null>(null);
@@ -59,7 +60,7 @@ function DemoStudio() {
   const vars = useMemo(() => themeToCssVars(theme) as React.CSSProperties, [theme]);
   const contrast = useMemo(() => contrastReport(theme), [theme]);
   const kpis = useMemo(() => computeKpis(stores, 7), [stores]);
-  const limit = PLANS.growth.maxLocations;
+  const limit = PLANS[selectedPlan].maxLocations;
 
   const onLogo = async (file?: File) => {
     if (!file) return;
@@ -94,6 +95,13 @@ function DemoStudio() {
             </label>
             <label className="grid gap-1.5 text-sm font-medium">{t("demo.name")}
               <input className="h-9 rounded-md border bg-card px-3 text-sm" value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />
+            </label>
+            <label className="grid gap-1.5 text-sm font-medium">{t("demo.planSelector")}
+              <select className="h-9 rounded-md border bg-card px-3 text-sm" value={selectedPlan} onChange={(e) => setSelectedPlan(e.target.value as "starter" | "growth" | "enterprise")}>
+                <option value="starter">Starter ({PLANS.starter.maxLocations} lojas)</option>
+                <option value="growth">Growth ({PLANS.growth.maxLocations} lojas)</option>
+                <option value="enterprise">Enterprise ({PLANS.enterprise.maxLocations} lojas)</option>
+              </select>
             </label>
             <div className="grid gap-1.5">
               <span className="text-sm font-medium">{t("demo.logo")}</span>
@@ -154,10 +162,20 @@ function DemoStudio() {
                 <span className="tabular text-xs text-muted-foreground">{t("demo.usage", { used: stores.length, limit })}</span>
               </div>
               <ul className="grid gap-2">
-                {stores.map((l) => (
+                {stores.map((l, idx) => (
                   <li key={l.id} className="flex items-center gap-2 rounded-md border px-3 py-2 text-sm">
                     <MapPin className="size-4 text-primary" /><span className="flex-1 truncate">{l.name}</span>
                     <Tag tone={l.status === "verified" ? "neutral" : "warning"}>{t(l.status === "verified" ? "demo.verified" : "demo.placeholderSlot")}</Tag>
+                    {stores.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setStores((prev) => prev.filter((_, i) => i !== idx))}
+                        className="ml-2 text-xs text-muted-foreground hover:text-destructive"
+                        title={t("demo.removeStore")}
+                      >
+                        &times;
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>
