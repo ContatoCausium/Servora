@@ -1,15 +1,15 @@
 {
   "title": "Gestão de Pedidos",
-  "subtitle": "Monitore tickets em tempo real, altere etapas de preparo e lance pedidos de salão, retirada ou entrega.",
+  "subtitle": "Acompanhe comandas ao vivo, altere status e registre pedidos para consumo no local, retirada ou entrega.",
   "simulatedBadge": "Simulação Interativa",
   "newOrder": "Novo Pedido",
-  "searchPlaceholder": "Buscar por nº pedido, cliente ou telefone...",
-  "filterType": "Tipo de Consumo",
+  "searchPlaceholder": "Buscar por comanda, nome do cliente ou telefone...",
+  "filterType": "Tipo de Pedido",
   "filterStatus": "Status",
   "allTypes": "Todos os Tipos",
   "allStatuses": "Todos os Status",
   "emptyTitle": "Nenhum pedido encontrado",
-  "emptyBody": "Tente alterar os filtros ou crie um novo pedido agora mesmo.",
+  "emptyBody": "Tente ajustar seus filtros de busca ou registre um novo pedido agora.",
   "types": {
     "dine_in": "Consumo no Local",
     "takeout": "Retirada",
@@ -24,7 +24,7 @@
     "cancelled": "Cancelado"
   },
   "columns": {
-    "order": "Pedido nº",
+    "order": "Comanda",
     "type": "Tipo",
     "customer": "Cliente",
     "items": "Itens",
@@ -34,19 +34,19 @@
   },
   "details": {
     "title": "Detalhes do Pedido",
-    "itemsList": "Itens do Pedido",
+    "itemsList": "Itens Selecionados",
     "summary": "Resumo Financeiro",
     "subtotal": "Subtotal",
     "discount": "Desconto",
-    "tax": "Imposto Configurável",
-    "total": "Total Geral",
-    "timeline": "Histórico de Alterações",
-    "instructions": "Observações",
+    "tax": "Imposto Calculado",
+    "total": "Total Final",
+    "timeline": "Histórico do Pedido",
+    "instructions": "Observações Especiais",
     "changeStatus": "Avançar Status",
     "statusUpdated": "Status atualizado para {{status}}"
   },
   "creator": {
-    "title": "Lançar Pedido",
+    "title": "Registrar Novo Pedido",
     "selectProduct": "Selecionar do Cardápio",
     "customerInfo": "Dados do Cliente",
     "name": "Nome Completo",
@@ -54,11 +54,11 @@
     "table": "Número da Mesa",
     "address": "Endereço de Entrega",
     "instructions": "Observações da Cozinha",
-    "taxRate": "Alíquota de Imposto (%)",
+    "taxRate": "Taxa de Imposto (%)",
     "discount": "Desconto (USD)",
     "addItem": "Adicionar ao Pedido",
-    "submit": "Confirmar e Criar Pedido",
-    "productUnavailable": "Item indisponível no cardápio",
+    "submit": "Confirmar e Gerar Pedido",
+    "productUnavailable": "Item indisponível no momento",
     "cancel": "Cancelar"
   }
 }
