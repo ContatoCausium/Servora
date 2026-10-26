@@ -1,26 +1,26 @@
 {
   "title": "Estoque e Ingredientes",
-  "subtitle": "Gestão de insumos, custos unitários, alertas de estoque e suprimentos por unidade.",
+  "subtitle": "Gestão de ingredientes, custos unitários, alertas de reposição e controle por unidade.",
   "simulatedBadge": "Simulação Interativa",
   "actions": {
     "newItem": "Novo insumo",
-    "compareLocations": "Comparar unidades",
+    "compareLocations": "Comparar lojas",
     "export": "Exportar CSV",
     "filter": "Filtros"
   },
   "kpis": {
-    "totalValue": "Valor Estimado em Estoque",
+    "totalValue": "Valor Total Estimado",
     "lowStock": "Itens com Estoque Baixo",
     "outOfStock": "Itens Esgotados",
     "expiringSoon": "Vencendo em < 7 Dias"
   },
   "categories": {
-    "all": "Todas as categorias",
+    "all": "Todas categorias",
     "meat": "Carnes e Aves",
     "produce": "Hortifrúti",
     "dairy": "Laticínios e Queijos",
-    "bakery": "Pães e Panificação",
-    "dry_goods": "Secos e Óleos",
+    "bakery": "Panificação e Pães",
+    "dry_goods": "Secos e Azeites",
     "beverages": "Bebidas e Xaropes",
     "packaging": "Embalagens e Descartáveis"
   },
@@ -30,40 +30,40 @@
     "stock": "Estoque Atual",
     "min": "Estoque Mínimo",
     "unitCost": "Custo Unitário",
-    "totalValue": "Valor Total (USD)",
+    "totalValue": "Valor (USD)",
     "supplier": "Fornecedor",
     "status": "Status",
     "actions": "Ações"
   },
   "status": {
-    "ok": "Normal",
+    "ok": "Em dia",
     "low": "Estoque baixo",
     "out": "Esgotado",
-    "expiring": "Próximo ao vencimento",
+    "expiring": "Vence logo",
     "inactive": "Inativo"
   },
   "modal": {
     "titleNew": "Cadastrar Novo Insumo",
-    "titleEdit": "Editar Insumo",
+    "titleEdit": "Editar Insumo de Estoque",
     "name": "Nome do Ingrediente",
     "sku": "Código / SKU",
     "category": "Categoria",
     "unit": "Unidade de Medida",
-    "quantity": "Quantidade Disponível",
-    "minQuantity": "Estoque Mínimo (Ponto de Reposição)",
+    "quantity": "Quantidade em Estoque",
+    "minQuantity": "Estoque Mínimo (Ponto de Pedido)",
     "cost": "Custo Unitário em USD",
-    "supplier": "Fornecedor",
+    "supplier": "Fornecedor / Distribuidor",
     "expirationDate": "Data de Validade (Opcional)",
-    "active": "Rastreamento de estoque ativo",
+    "active": "Controle ativo de inventário",
     "cancel": "Cancelar",
     "save": "Salvar Insumo"
   },
   "comparison": {
-    "title": "Comparativo entre Unidades",
-    "desc": "Visualize e compare a disponibilidade de insumos entre as lojas da rede."
+    "title": "Comparativo de Estoque entre Unidades",
+    "desc": "Visualize e compare a disponibilidade de ingredientes entre as lojas ativas."
   },
   "empty": {
-    "title": "Nenhum item de estoque encontrado",
-    "body": "Ajuste os filtros de pesquisa ou cadastre um novo ingrediente."
+    "title": "Nenhum insumo encontrado",
+    "body": "Ajuste seus filtros de busca ou cadastre um novo ingrediente no estoque."
   }
 }
