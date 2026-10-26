@@ -1,19 +1,19 @@
 {
   "title": "Gestão de Pedidos",
-  "subtitle": "Monitore comandas em tempo real, altere etapas de preparo e receba pedidos no local, retirada ou entrega.",
+  "subtitle": "Acompanhe comandas ao vivo, altere status e registre pedidos para consumo no local, retirada ou entrega.",
   "simulatedBadge": "Simulação Interativa",
   "newOrder": "Novo Pedido",
-  "searchPlaceholder": "Buscar por comanda #, nome ou telefone...",
+  "searchPlaceholder": "Buscar por comanda, cliente ou telefone...",
   "filterType": "Tipo de Pedido",
   "filterStatus": "Status",
   "allTypes": "Todos os Tipos",
   "allStatuses": "Todos os Status",
   "emptyTitle": "Nenhum pedido encontrado",
-  "emptyBody": "Tente ajustar seus filtros de busca ou cadastre um novo pedido.",
+  "emptyBody": "Tente ajustar seus filtros ou crie um novo pedido para começar.",
   "types": {
-    "dine_in": "Consumo no Local",
-    "takeout": "Retirada (Takeout)",
-    "delivery": "Entrega (Delivery)"
+    "dine_in": "No Local",
+    "takeout": "Retirada",
+    "delivery": "Entrega"
   },
   "statuses": {
     "new": "Novo",
@@ -24,7 +24,7 @@
     "cancelled": "Cancelado"
   },
   "columns": {
-    "order": "Comanda #",
+    "order": "Comanda",
     "type": "Tipo",
     "customer": "Cliente",
     "items": "Itens",
@@ -34,30 +34,30 @@
   },
   "details": {
     "title": "Detalhes do Pedido",
-    "itemsList": "Itens Selecionados",
+    "itemsList": "Itens do Pedido",
     "summary": "Resumo Financeiro",
     "subtotal": "Subtotal",
     "discount": "Desconto",
-    "tax": "Imposto Calculado",
+    "tax": "Imposto Configurável",
     "total": "Total Geral",
-    "timeline": "Histórico e Rastreio",
-    "instructions": "Instruções do Cliente",
-    "changeStatus": "Avançar Status",
+    "timeline": "Histórico de Status",
+    "instructions": "Observações Especiais",
+    "changeStatus": "Alterar Status",
     "statusUpdated": "Status atualizado para {{status}}"
   },
   "creator": {
-    "title": "Criar Pedido",
+    "title": "Criar Novo Pedido",
     "selectProduct": "Selecionar do Cardápio",
     "customerInfo": "Dados do Cliente",
     "name": "Nome Completo",
-    "phone": "Telefone",
+    "phone": "Telefone de Contato",
     "table": "Número da Mesa",
     "address": "Endereço de Entrega",
-    "instructions": "Observações para Cozinha",
+    "instructions": "Instruções para Cozinha",
     "taxRate": "Alíquota de Imposto (%)",
     "discount": "Desconto (USD)",
     "addItem": "Adicionar ao Pedido",
-    "submit": "Confirmar e Salvar Pedido",
+    "submit": "Confirmar e Gerar Pedido",
     "productUnavailable": "Item indisponível no momento",
     "cancel": "Cancelar"
   }
