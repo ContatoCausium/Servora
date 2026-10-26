@@ -51,6 +51,190 @@ export async function listPlans(): Promise<PlanDef[]> {
   if (error) throw new Error(requestErrorKind(error));
   return data as PlanDef[];
 }
+
+/* ── Plan management (Phase 2.2) ── */
+
+export type PlanFeature = { key: string; starter: boolean; growth: boolean; enterprise: boolean };
+export type PlanChangeEntry = {
+  id: string;
+  planId: PlanId;
+  field: string;
+  oldValue: string;
+  newValue: string;
+  reason: string;
+  status: "draft" | "published";
+  actorEmail: string;
+  createdAt: string;
+};
+
+export type FullPlanDef = {
+  id: PlanId;
+  name: string;
+  description: string;
+  priceMonthlyUsd: number;
+  priceAnnualUsd: number;
+  maxLocations: number;
+  maxEmployees: number;
+  trialDays: number;
+  trialStoreLimit: number;
+  isActive: boolean;
+  isPlaceholder: boolean;
+  features: string[];
+  limits: Record<string, number>;
+};
+
+export type PlanImpactSummary = {
+  planId: PlanId;
+  affectedOrgs: number;
+  affectedLocations: number;
+  details: string[];
+};
+
+const PLAN_FEATURES: PlanFeature[] = [
+  { key: "basicDashboard", starter: true, growth: true, enterprise: true },
+  { key: "locationManagement", starter: true, growth: true, enterprise: true },
+  { key: "teamManagement", starter: true, growth: true, enterprise: true },
+  { key: "brandCustomization", starter: false, growth: true, enterprise: true },
+  { key: "advancedAnalytics", starter: false, growth: true, enterprise: true },
+  { key: "multiLocation", starter: false, growth: true, enterprise: true },
+  { key: "apiAccess", starter: false, growth: false, enterprise: true },
+  { key: "prioritySupport", starter: false, growth: false, enterprise: true },
+  { key: "customIntegrations", starter: false, growth: false, enterprise: true },
+  { key: "whiteLabel", starter: false, growth: false, enterprise: true },
+  { key: "dedicatedManager", starter: false, growth: false, enterprise: true },
+  { key: "slaGuarantee", starter: false, growth: false, enterprise: true },
+];
+
+const DEFAULT_PLANS: FullPlanDef[] = [
+  { id: "starter", name: "Starter", description: "Essential tools for a single location", priceMonthlyUsd: 29, priceAnnualUsd: 290, maxLocations: 1, maxEmployees: 10, trialDays: 14, trialStoreLimit: 1, isActive: true, isPlaceholder: true, features: ["basicDashboard", "locationManagement", "teamManagement"], limits: { orders_per_month: 500, menu_items: 100 } },
+  { id: "growth", name: "Growth", description: "Scale to multiple locations with advanced features", priceMonthlyUsd: 79, priceAnnualUsd: 790, maxLocations: 5, maxEmployees: 50, trialDays: 14, trialStoreLimit: 2, isActive: true, isPlaceholder: true, features: ["basicDashboard", "locationManagement", "teamManagement", "brandCustomization", "advancedAnalytics", "multiLocation"], limits: { orders_per_month: 5000, menu_items: 500 } },
+  { id: "enterprise", name: "Enterprise", description: "Unlimited scale with dedicated support and SLA", priceMonthlyUsd: 199, priceAnnualUsd: 1990, maxLocations: 999, maxEmployees: 9999, trialDays: 30, trialStoreLimit: 5, isActive: true, isPlaceholder: true, features: PLAN_FEATURES.map((f) => f.key), limits: { orders_per_month: -1, menu_items: -1 } },
+];
+
+let planDrafts: Map<PlanId, Partial<FullPlanDef>> = new Map();
+let planChangeHistory: PlanChangeEntry[] = [];
+let planActiveState: Map<PlanId, boolean> = new Map([
+  ["starter", true], ["growth", true], ["enterprise", true],
+]);
+
+export function getPlanFeatures(): PlanFeature[] {
+  return [...PLAN_FEATURES];
+}
+
+export async function listFullPlans(): Promise<FullPlanDef[]> {
+  // Merge DB plan data with local defaults
+  const dbPlans = await listPlans();
+  return DEFAULT_PLANS.map((dp) => {
+    const db = dbPlans.find((p) => p.id === dp.id);
+    const draft = planDrafts.get(dp.id);
+    const active = planActiveState.get(dp.id) ?? dp.isActive;
+    return {
+      ...dp,
+      ...(db ? {
+        priceMonthlyUsd: db.price_per_location_cents / 100,
+        maxLocations: db.default_store_limit,
+        trialDays: db.trial_days,
+        trialStoreLimit: db.trial_store_limit,
+        isPlaceholder: db.is_placeholder_pricing,
+      } : {}),
+      isActive: active,
+      ...(draft ?? {}),
+    };
+  });
+}
+
+export function savePlanDraft(planId: PlanId, changes: Partial<FullPlanDef>, reason: string, actorEmail: string): PlanChangeEntry[] {
+  if (reason.trim().length < 3) throw new Error("reason_required");
+  const existing = planDrafts.get(planId) ?? {};
+  const merged = { ...existing, ...changes };
+  planDrafts.set(planId, merged);
+
+  const entries: PlanChangeEntry[] = Object.entries(changes).map(([field, newValue]) => ({
+    id: `pch-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    planId,
+    field,
+    oldValue: String((DEFAULT_PLANS.find((p) => p.id === planId) as Record<string, unknown> | undefined)?.[field] ?? ""),
+    newValue: String(newValue),
+    reason,
+    status: "draft" as const,
+    actorEmail,
+    createdAt: new Date().toISOString(),
+  }));
+  planChangeHistory = [...entries, ...planChangeHistory];
+  return entries;
+}
+
+export function publishPlanDraft(planId: PlanId, reason: string, actorEmail: string): PlanChangeEntry[] {
+  if (reason.trim().length < 3) throw new Error("reason_required");
+  const draft = planDrafts.get(planId);
+  if (!draft || Object.keys(draft).length === 0) throw new Error("not_found");
+  // Mark draft entries as published
+  const published = planChangeHistory
+    .filter((e) => e.planId === planId && e.status === "draft")
+    .map((e) => ({ ...e, status: "published" as const }));
+  planChangeHistory = planChangeHistory.map((e) => {
+    if (e.planId === planId && e.status === "draft") return { ...e, status: "published" as const };
+    return e;
+  });
+  // Keep draft applied (simulation only — no real DB write)
+  return published;
+}
+
+export function discardPlanDraft(planId: PlanId): void {
+  planDrafts.delete(planId);
+  planChangeHistory = planChangeHistory.filter((e) => !(e.planId === planId && e.status === "draft"));
+}
+
+export function togglePlanActive(planId: PlanId, active: boolean, reason: string, actorEmail: string): PlanChangeEntry {
+  if (reason.trim().length < 3) throw new Error("reason_required");
+  planActiveState.set(planId, active);
+  const entry: PlanChangeEntry = {
+    id: `pch-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    planId,
+    field: "isActive",
+    oldValue: String(!active),
+    newValue: String(active),
+    reason,
+    status: "published",
+    actorEmail,
+    createdAt: new Date().toISOString(),
+  };
+  planChangeHistory = [entry, ...planChangeHistory];
+  return entry;
+}
+
+export function getPlanChangeHistory(planId?: PlanId): PlanChangeEntry[] {
+  if (planId) return planChangeHistory.filter((e) => e.planId === planId);
+  return [...planChangeHistory];
+}
+
+export function hasPlanDraft(planId: PlanId): boolean {
+  const d = planDrafts.get(planId);
+  return !!d && Object.keys(d).length > 0;
+}
+
+export async function simulatePlanImpact(planId: PlanId, changes: Partial<FullPlanDef>): Promise<PlanImpactSummary> {
+  // Simulated: count orgs on this plan from the org list
+  const orgs = await listOrganizations();
+  const affected = orgs.filter((o) => o.plan === planId && !o.is_demo);
+  const details: string[] = [];
+  if (changes.maxLocations !== undefined) {
+    const overLimit = affected.filter((o) => o.store_count > (changes.maxLocations ?? 999));
+    if (overLimit.length > 0) details.push(`${overLimit.length} org(s) would exceed new location limit`);
+  }
+  if (changes.priceMonthlyUsd !== undefined) {
+    details.push(`Price change affects ${affected.length} active subscription(s) (simulation only)`);
+  }
+  if (changes.maxEmployees !== undefined) {
+    details.push(`Employee limit change affects ${affected.length} org(s)`);
+  }
+  return {
+    planId,
+    affectedOrgs: affected.length,
+    affectedLocations: affected.reduce((s, o) => s + o.store_count, 0),
+    details,
+  };
+}
 /** Round-trip latency to the backend authorization check (integration health). */
 export async function pingBackend() {
   const t0 = performance.now();
