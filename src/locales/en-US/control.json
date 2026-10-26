@@ -147,6 +147,7 @@
     "unavailable": "Unavailable",
     "mrr": "MRR",
     "arr": "ARR",
+    "projectedBadge": "Estimate",
     "projected": "Projection at list prices: {{value}} — not revenue",
     "placeholderPricing": "List prices are placeholders and not final. Projections are estimates for planning only.",
     "distribution": "Plan distribution",
@@ -183,7 +184,10 @@
     "demos": "Demo only",
     "noMatch": "No organizations match these filters.",
     "override": "Custom limit",
-    "trialEnds": "Trial ends {{date}}"
+    "trialEnds": "Trial ends {{date}}",
+    "pagination": "Page {{current}} of {{total}}",
+    "prev": "Previous",
+    "next": "Next"
   },
   "sub": {
     "none": "No subscription",

@@ -64,7 +64,7 @@ export function computeOverview(orgs: OrgInsight[], plans: PlanDef[], now = Date
   const converted = paying.length;
   const decided = converted + expired;
 
-  return {
+    return {
     customers: customers.length,
     demos: demos.length,
     active: customers.filter((o) => o.status === "active").length,
@@ -77,9 +77,14 @@ export function computeOverview(orgs: OrgInsight[], plans: PlanDef[], now = Date
     actualMrrCents,
     actualArrCents: actualMrrCents === null ? null : actualMrrCents * 12,
     projectedMrrCents,
+    isProjectionEstimate: true,
     placeholderPricing: plans.some((p) => p.is_placeholder_pricing),
     distribution: plans.map((p) => ({
-      plan: p.id, customers: customers.filter((o) => o.plan === p.id).length, demos: demos.filter((o) => o.plan === p.id).length,
+      plan: p.id,
+      customers: customers.filter((o) => o.plan === p.id).length,
+      demos: demos.filter((o) => o.plan === p.id).length,
+      active: customers.filter((o) => o.plan === p.id && o.status === "active").length,
+      trial: customers.filter((o) => o.plan === p.id && o.status === "trial").length,
     })),
     trials: { active: trialing.length - expired, expired, converted, rate: decided ? converted / decided : null },
     attention: orgs
