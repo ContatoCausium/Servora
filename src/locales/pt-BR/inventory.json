@@ -1,0 +1,69 @@
+{
+  "title": "Estoque e Ingredientes",
+  "subtitle": "Gestão de insumos, custos unitários, alertas de estoque e suprimentos por unidade.",
+  "simulatedBadge": "Simulação Interativa",
+  "actions": {
+    "newItem": "Novo insumo",
+    "compareLocations": "Comparar unidades",
+    "export": "Exportar CSV",
+    "filter": "Filtros"
+  },
+  "kpis": {
+    "totalValue": "Valor Estimado em Estoque",
+    "lowStock": "Itens com Estoque Baixo",
+    "outOfStock": "Itens Esgotados",
+    "expiringSoon": "Vencendo em < 7 Dias"
+  },
+  "categories": {
+    "all": "Todas as categorias",
+    "meat": "Carnes e Aves",
+    "produce": "Hortifrúti",
+    "dairy": "Laticínios e Queijos",
+    "bakery": "Pães e Panificação",
+    "dry_goods": "Secos e Óleos",
+    "beverages": "Bebidas e Xaropes",
+    "packaging": "Embalagens e Descartáveis"
+  },
+  "table": {
+    "item": "Item e SKU",
+    "category": "Categoria",
+    "stock": "Estoque Atual",
+    "min": "Estoque Mínimo",
+    "unitCost": "Custo Unitário",
+    "totalValue": "Valor Total (USD)",
+    "supplier": "Fornecedor",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "status": {
+    "ok": "Normal",
+    "low": "Estoque baixo",
+    "out": "Esgotado",
+    "expiring": "Próximo ao vencimento",
+    "inactive": "Inativo"
+  },
+  "modal": {
+    "titleNew": "Cadastrar Novo Insumo",
+    "titleEdit": "Editar Insumo",
+    "name": "Nome do Ingrediente",
+    "sku": "Código / SKU",
+    "category": "Categoria",
+    "unit": "Unidade de Medida",
+    "quantity": "Quantidade Disponível",
+    "minQuantity": "Estoque Mínimo (Ponto de Reposição)",
+    "cost": "Custo Unitário em USD",
+    "supplier": "Fornecedor",
+    "expirationDate": "Data de Validade (Opcional)",
+    "active": "Rastreamento de estoque ativo",
+    "cancel": "Cancelar",
+    "save": "Salvar Insumo"
+  },
+  "comparison": {
+    "title": "Comparativo entre Unidades",
+    "desc": "Visualize e compare a disponibilidade de insumos entre as lojas da rede."
+  },
+  "empty": {
+    "title": "Nenhum item de estoque encontrado",
+    "body": "Ajuste os filtros de pesquisa ou cadastre um novo ingrediente."
+  }
+}

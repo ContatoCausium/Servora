@@ -1,0 +1,69 @@
+{
+  "title": "Inventory & Ingredients",
+  "subtitle": "Manage ingredients, unit-level costs, stock alerts and store-by-store supply.",
+  "simulatedBadge": "Interactive Simulation",
+  "actions": {
+    "newItem": "Add ingredient",
+    "compareLocations": "Compare stores",
+    "export": "Export CSV",
+    "filter": "Filters"
+  },
+  "kpis": {
+    "totalValue": "Total Estimated Stock Value",
+    "lowStock": "Low Stock Alert",
+    "outOfStock": "Out of Stock Items",
+    "expiringSoon": "Expiring in < 7 Days"
+  },
+  "categories": {
+    "all": "All categories",
+    "meat": "Meat & Poultry",
+    "produce": "Fresh Produce",
+    "dairy": "Dairy & Cheese",
+    "bakery": "Bakery & Buns",
+    "dry_goods": "Dry Goods & Oils",
+    "beverages": "Beverages & Syrups",
+    "packaging": "Packaging & Eco"
+  },
+  "table": {
+    "item": "Item & SKU",
+    "category": "Category",
+    "stock": "Stock on Hand",
+    "min": "Min Level",
+    "unitCost": "Unit Cost",
+    "totalValue": "Value (USD)",
+    "supplier": "Supplier",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "status": {
+    "ok": "In stock",
+    "low": "Low stock",
+    "out": "Out of stock",
+    "expiring": "Expiring soon",
+    "inactive": "Inactive"
+  },
+  "modal": {
+    "titleNew": "Register New Stock Item",
+    "titleEdit": "Edit Stock Item",
+    "name": "Ingredient Name",
+    "sku": "SKU / Code",
+    "category": "Category",
+    "unit": "Unit of Measure",
+    "quantity": "Current Quantity",
+    "minQuantity": "Minimum Threshold (Par level)",
+    "cost": "Unit Cost in USD",
+    "supplier": "Supplier / Vendor",
+    "expirationDate": "Expiration Date (Optional)",
+    "active": "Active inventory tracking",
+    "cancel": "Cancel",
+    "save": "Save Item"
+  },
+  "comparison": {
+    "title": "Multi-Location Stock Comparison",
+    "desc": "View and compare ingredient availability across active licensed stores."
+  },
+  "empty": {
+    "title": "No inventory items found",
+    "body": "Adjust your search filters or register a new ingredient."
+  }
+}
