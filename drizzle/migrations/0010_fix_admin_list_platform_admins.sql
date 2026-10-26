@@ -37,7 +37,7 @@ begin
       r.role
     from public.user_roles r
     join auth.users u on u.id = r.user_id
-    order by r.created_at asc;
+    order by r.role asc, u.email asc;
 end $$;
 
 -- Permissões estritas

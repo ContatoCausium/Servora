@@ -74,4 +74,21 @@ describe("Fase 2.4 - admin_list_platform_admins and admin protections", () => {
 
     await expect(listPlatformAdmins()).rejects.toThrow("forbidden");
   });
+
+  it("validates that setPlatformRole enforces reason minimum length", async () => {
+    await expect(
+      setPlatformRole("test@servora.test", "support", true, "  ")
+    ).rejects.toThrow("reason_required");
+  });
+
+  it("allows support role assignment with valid justification", async () => {
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({
+      data: null,
+      error: null,
+    } as any);
+
+    await expect(
+      setPlatformRole("support@servora.test", "support", true, "Support operations onboard")
+    ).resolves.not.toThrow();
+  });
 });

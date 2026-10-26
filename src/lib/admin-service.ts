@@ -79,6 +79,9 @@ export const setPlatformRole = async (
   grant: boolean,
   reason: string,
 ) => {
+  if (reason.trim().length < 3) {
+    throw new Error("reason_required");
+  }
   if (!grant && role === "platform_admin") {
     const current = await listPlatformAdmins();
     const adminCount = current.filter((a) => a.role === "platform_admin").length;
