@@ -12,10 +12,28 @@ export type PlatformOrg = {
   id: string; name: string; slug: string; status: OrgStatus; plan: PlanId; store_limit: number;
   store_count: number; member_count: number; owner_count: number; is_demo: boolean; created_at: string;
 };
-export type PlatformAudit = { id: string; org_id: string | null; org_name: string | null; actor_id: string | null; action: string; target: string | null; metadata: Record<string, unknown>; created_at: string };
-export type PlatformAdmin = { user_id: string; email: string; role: "platform_admin" | "support" };
+export type PlatformAudit = {
+  id: string;
+  org_id: string | null;
+  org_name: string | null;
+  actor_id: string | null;
+  action: string;
+  target: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+export type PlatformRole = "platform_admin" | "support";
+export type PlatformAdmin = {
+  user_id: string;
+  email: string;
+  role: PlatformRole;
+};
 
-const code = (msg: string) => ["forbidden", "reason_required", "verification_required", "user_not_found", "last_admin", "not_found"].find((c) => msg.includes(c)) ?? "unknown";
+const code = (msg: string) =>
+  ["forbidden", "reason_required", "verification_required", "user_not_found", "last_admin", "not_found"].find((c) =>
+    msg.includes(c),
+  ) ?? "unknown";
+
 async function call<T>(fn: string, args: Record<string, unknown> = {}): Promise<T> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.rpc as any)(fn, args);
@@ -26,26 +44,107 @@ async function call<T>(fn: string, args: Record<string, unknown> = {}): Promise<
 export const isPlatformAdmin = async () => {
   try { return Boolean(await call<boolean>("is_platform_admin")); } catch { return false; }
 };
+
 export const listOrganizations = () => call<PlatformOrg[]>("admin_list_organizations");
 export const listPlatformAudit = (limit = 100) => call<PlatformAudit[]>("admin_list_audit", { _limit: limit });
 export const listPlatformAdmins = () => call<PlatformAdmin[]>("admin_list_platform_admins");
-export const updateOrganization = (orgId: string, patch: { status?: OrgStatus; plan?: PlanId; storeLimit?: number }, reason: string) =>
-  call<void>("admin_update_organization", { _org_id: orgId, _status: patch.status ?? null, _plan: patch.plan ?? null, _store_limit: patch.storeLimit ?? null, _reason: reason });
+
+export const updateOrganization = (
+  orgId: string,
+  patch: { status?: OrgStatus; plan?: PlanId; storeLimit?: number },
+  reason: string,
+) =>
+  call<void>("admin_update_organization", {
+    _org_id: orgId,
+    _status: patch.status ?? null,
+    _plan: patch.plan ?? null,
+    _store_limit: patch.storeLimit ?? null,
+    _reason: reason,
+  });
+
 export const assignOwner = (orgId: string, email: string, verificationNote: string) =>
-  call<void>("admin_assign_owner", { _org_id: orgId, _email: email, _verification_note: verificationNote });
-export const setPlatformRole = (email: string, role: PlatformAdmin["role"], grant: boolean, reason: string) =>
-  call<void>("admin_set_platform_role", { _email: email, _role: role, _grant: grant, _reason: reason });
+  call<void>("admin_assign_owner", {
+    _org_id: orgId,
+    _email: email,
+    _verification_note: verificationNote,
+  });
+
+/**
+ * Concede ou revoga um papel de plataforma ('platform_admin' | 'support').
+ * Impede revogação no cliente se for o último administrador remanescente.
+ */
+export const setPlatformRole = async (
+  email: string,
+  role: PlatformAdmin["role"],
+  grant: boolean,
+  reason: string,
+) => {
+  if (!grant && role === "platform_admin") {
+    const current = await listPlatformAdmins();
+    const adminCount = current.filter((a) => a.role === "platform_admin").length;
+    const targetIsAdmin = current.some((a) => a.email.toLowerCase() === email.trim().toLowerCase() && a.role === "platform_admin");
+    if (targetIsAdmin && adminCount <= 1) {
+      throw new Error("last_admin");
+    }
+  }
+  return call<void>("admin_set_platform_role", {
+    _email: email,
+    _role: role,
+    _grant: grant,
+    _reason: reason,
+  });
+};
+
+/* ── Audit log filtering ── */
+export type AuditFilterOptions = {
+  orgId?: string | "all" | "platform_only";
+  action?: string | "all";
+  searchQuery?: string;
+  startDate?: string | null;
+  endDate?: string | null;
+};
+
+export function filterAuditLogs(logs: PlatformAudit[], options: AuditFilterOptions): PlatformAudit[] {
+  const query = options.searchQuery?.trim().toLowerCase() ?? "";
+  return logs.filter((log) => {
+    if (options.orgId === "platform_only" && log.org_id !== null) return false;
+    if (options.orgId && options.orgId !== "all" && options.orgId !== "platform_only" && log.org_id !== options.orgId) return false;
+    if (options.action && options.action !== "all" && log.action !== options.action) return false;
+    if (options.startDate && new Date(log.created_at) < new Date(options.startDate)) return false;
+    if (options.endDate) {
+      const end = new Date(options.endDate);
+      end.setHours(23, 59, 59, 999);
+      if (new Date(log.created_at) > end) return false;
+    }
+    if (query) {
+      const matchAction = log.action.toLowerCase().includes(query);
+      const matchTarget = (log.target ?? "").toLowerCase().includes(query);
+      const matchOrg = (log.org_name ?? "").toLowerCase().includes(query);
+      const metaStr = JSON.stringify(log.metadata ?? {}).toLowerCase();
+      const matchMeta = metaStr.includes(query);
+      if (!matchAction && !matchTarget && !matchOrg && !matchMeta) return false;
+    }
+    return true;
+  });
+}
 
 export type { OrgInsight, PlanDef } from "@/lib/platform-metrics";
 import type { OrgInsight, PlanDef } from "@/lib/platform-metrics";
 const num = (v: unknown) => Number(v ?? 0);
 export const listOrgInsights = async () =>
   (await call<OrgInsight[]>("admin_org_insights")).map((o) => ({
-    ...o, store_count: num(o.store_count), active_store_count: num(o.active_store_count), store_limit: num(o.store_limit),
-    member_count: num(o.member_count), owner_count: num(o.owner_count), pending_invites: num(o.pending_invites),
+    ...o,
+    store_count: num(o.store_count),
+    active_store_count: num(o.active_store_count),
+    store_limit: num(o.store_limit),
+    member_count: num(o.member_count),
+    owner_count: num(o.owner_count),
+    pending_invites: num(o.pending_invites),
   }));
+
 export async function listPlans(): Promise<PlanDef[]> {
-  const { data, error } = await supabase.from("billing_plans")
+  const { data, error } = await supabase
+    .from("billing_plans")
     .select("id,name,price_per_location_cents,currency,default_store_limit,trial_store_limit,trial_days,is_placeholder_pricing")
     .order("price_per_location_cents");
   if (error) throw new Error(requestErrorKind(error));
@@ -122,7 +221,6 @@ export function getPlanFeatures(): PlanFeature[] {
 }
 
 export async function listFullPlans(): Promise<FullPlanDef[]> {
-  // Merge DB plan data with local defaults
   const dbPlans = await listPlans();
   return DEFAULT_PLANS.map((dp) => {
     const db = dbPlans.find((p) => p.id === dp.id);
@@ -168,7 +266,6 @@ export function publishPlanDraft(planId: PlanId, reason: string, actorEmail: str
   if (reason.trim().length < 3) throw new Error("reason_required");
   const draft = planDrafts.get(planId);
   if (!draft || Object.keys(draft).length === 0) throw new Error("not_found");
-  // Mark draft entries as published
   const published = planChangeHistory
     .filter((e) => e.planId === planId && e.status === "draft")
     .map((e) => ({ ...e, status: "published" as const }));
@@ -176,7 +273,6 @@ export function publishPlanDraft(planId: PlanId, reason: string, actorEmail: str
     if (e.planId === planId && e.status === "draft") return { ...e, status: "published" as const };
     return e;
   });
-  // Keep draft applied (simulation only — no real DB write)
   return published;
 }
 
@@ -214,7 +310,6 @@ export function hasPlanDraft(planId: PlanId): boolean {
 }
 
 export async function simulatePlanImpact(planId: PlanId, changes: Partial<FullPlanDef>): Promise<PlanImpactSummary> {
-  // Simulated: count orgs on this plan from the org list
   const orgs = await listOrganizations();
   const affected = orgs.filter((o) => o.plan === planId && !o.is_demo);
   const details: string[] = [];
@@ -235,6 +330,7 @@ export async function simulatePlanImpact(planId: PlanId, changes: Partial<FullPl
     details,
   };
 }
+
 /** Round-trip latency to the backend authorization check (integration health). */
 export async function pingBackend() {
   const t0 = performance.now();
