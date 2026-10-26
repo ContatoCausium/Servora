@@ -153,7 +153,33 @@
     "current": "Funções atuais",
     "grantTitle": "Conceder função da plataforma",
     "grantHint": "A pessoa já precisa ter uma conta confirmada.",
-    "empty": "Nenhuma função de plataforma encontrada."
+    "empty": "Nenhuma função de plataforma encontrada.",
+    "searchPlaceholder": "Buscar por e-mail...",
+    "allRoles": "Todas as funções",
+    "soleAdminTag": "Único administrador",
+    "matrixTitle": "Matriz de Permissões",
+    "matrixSubtitle": "Comparativo de escopo e responsabilidades entre papéis de plataforma e workspace.",
+    "actionCol": "Ação / Capacidade",
+    "restaurantOwner": "Proprietário do restaurante",
+    "restaurantStaff": "Equipe do restaurante",
+    "supportDesc": "Suporte operacional limitado e leitura de auditoria",
+    "adminDesc": "Acesso administrativo total à infraestrutura",
+    "reasonPlaceholder": "Descreva a justificativa para auditoria",
+    "revokeTitle": "Revogar privilégio de {{email}}",
+    "revokeBody": "Tem certeza que deseja revogar o papel de {{role}}? Esta ação é auditada.",
+    "confirmRevoke": "Confirmar revogação",
+    "matrix": {
+      "managePlatformAdmins": "Gerenciar administradores de plataforma",
+      "viewAuditLogs": "Visualizar registros de auditoria",
+      "editOrgSubscription": "Alterar assinaturas e faturamento",
+      "overrideStoreLimit": "Definir limites customizados de unidades",
+      "assignOrgOwner": "Vincular proprietário verificado a restaurante",
+      "suspendOrganization": "Suspender ou reativar restaurantes",
+      "viewOrgMetadata": "Consultar metadados administrativos de organizações",
+      "viewRestaurantPrivateData": "Acessar pedidos, vendas e caixa privado do restaurante",
+      "manageRestaurantMembers": "Gerenciar funcionários e membros da loja",
+      "manageRestaurantLocations": "Criar e gerenciar lojas do restaurante"
+    }
   },
   "roles": {
     "platform_admin": "Administrador da plataforma",
@@ -321,7 +347,12 @@
     "allOrgs": "Todas as organizações",
     "scope": "Escopo",
     "allEvents": "Todos os eventos",
-    "platformOnly": "Apenas ações da plataforma"
+    "platformOnly": "Apenas ações da plataforma",
+    "searchPlaceholder": "Buscar por ação, alvo, motivo ou payload...",
+    "actionFilter": "Filtrar por ação",
+    "allActions": "Todas as ações",
+    "detailTitle": "Detalhes do Evento de Auditoria",
+    "metadataPayload": "Metadados e Carga Útil (JSON)"
   },
   "settings": {
     "subtitle": "Identidade da plataforma, definições de planos, status de integrações e controles de segurança aplicados pelo backend.",

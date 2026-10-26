@@ -153,7 +153,33 @@
     "current": "Current roles",
     "grantTitle": "Grant a platform role",
     "grantHint": "The person must already have a confirmed account.",
-    "empty": "No platform roles found."
+    "empty": "No platform roles found.",
+    "searchPlaceholder": "Search by email...",
+    "allRoles": "All roles",
+    "soleAdminTag": "Sole administrator",
+    "matrixTitle": "Permissions Matrix",
+    "matrixSubtitle": "Scope and responsibilities comparison between platform and workspace roles.",
+    "actionCol": "Action / Capability",
+    "restaurantOwner": "Restaurant Owner",
+    "restaurantStaff": "Restaurant Staff",
+    "supportDesc": "Limited operational support and audit reading",
+    "adminDesc": "Full administrative control over infrastructure",
+    "reasonPlaceholder": "Describe the audit justification",
+    "revokeTitle": "Revoke privilege for {{email}}",
+    "revokeBody": "Are you sure you want to revoke the {{role}} role? This action is recorded in the audit log.",
+    "confirmRevoke": "Confirm revocation",
+    "matrix": {
+      "managePlatformAdmins": "Manage platform administrators",
+      "viewAuditLogs": "View platform and tenant audit logs",
+      "editOrgSubscription": "Change subscriptions and billing",
+      "overrideStoreLimit": "Set custom store limits",
+      "assignOrgOwner": "Assign verified owner to restaurant",
+      "suspendOrganization": "Suspend or reactivate restaurants",
+      "viewOrgMetadata": "View administrative metadata of organizations",
+      "viewRestaurantPrivateData": "Access orders, sales and private tenant cash register",
+      "manageRestaurantMembers": "Manage restaurant staff and store members",
+      "manageRestaurantLocations": "Create and manage restaurant stores"
+    }
   },
   "roles": {
     "platform_admin": "Platform administrator",
@@ -325,7 +351,12 @@
     "allOrgs": "All organizations",
     "scope": "Scope",
     "allEvents": "All events",
-    "platformOnly": "Platform actions only"
+    "platformOnly": "Platform actions only",
+    "searchPlaceholder": "Search by action, target, reason or payload...",
+    "actionFilter": "Filter by action",
+    "allActions": "All actions",
+    "detailTitle": "Audit Event Details",
+    "metadataPayload": "Metadata & Payload (JSON)"
   },
   "settings": {
     "subtitle": "Platform identity, plan definitions, integration status and the security controls enforced by the backend.",
