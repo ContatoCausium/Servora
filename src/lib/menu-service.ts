@@ -165,6 +165,28 @@ export function saveCategory(orgId: string, category: MenuCategory): MenuCategor
   return updated;
 }
 
+export function deleteCategory(orgId: string, categoryId: string): MenuCategory[] {
+  const existing = listCategories(orgId);
+  const updated = existing.filter((c) => c.id !== categoryId);
+  if (typeof window !== "undefined") {
+    localStorage.setItem(getStoreKey(orgId, "categories"), JSON.stringify(updated));
+  }
+  return updated;
+}
+
+export function duplicateMenuItem(orgId: string, itemId: string): MenuItem[] {
+  const existing = listMenuItems(orgId);
+  const target = existing.find((i) => i.id === itemId);
+  if (!target) return existing;
+  const duplicated: MenuItem = {
+    ...target,
+    id: `item-${Date.now()}`,
+    name: `${target.name} (Copy)`,
+    createdAt: new Date().toISOString(),
+  };
+  return saveMenuItem(orgId, duplicated);
+}
+
 export function listMenuItems(orgId: string): MenuItem[] {
   if (typeof window === "undefined") return INITIAL_ITEMS;
   const saved = localStorage.getItem(getStoreKey(orgId, "items"));

@@ -17,9 +17,10 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle
 } from "@/components/ui/dialog";
 import {
-  listCategories, saveCategory, listMenuItems, saveMenuItem, deleteMenuItem,
-  type MenuItem, type MenuCategory, type ModifierGroup
+  listCategories, saveCategory, deleteCategory, listMenuItems, saveMenuItem, deleteMenuItem, duplicateMenuItem,
+  type MenuItem, type MenuCategory, type ModifierGroup, type ModifierOption
 } from "@/lib/menu-service";
+import { DemoBadge } from "@/components/app/brand-mark";
 
 export const Route = createFileRoute("/_authenticated/_app/menu")({
   head: () => ({
@@ -30,16 +31,20 @@ export const Route = createFileRoute("/_authenticated/_app/menu")({
 
 function MenuPage() {
   const { t } = useTranslation("menu");
-  const { org, locationId } = useWorkspace();
+  const { org, locationId, role } = useWorkspace();
+  const canManage = role !== "staff";
 
   const [categories, setCategories] = useState<MenuCategory[]>(() => listCategories(org.id));
   const [items, setItems] = useState<MenuItem[]>(() => listMenuItems(org.id));
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [previewOpen, setPreviewOpen] = useState(false);
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
   const [catDialogOpen, setCatDialogOpen] = useState(false);
+  const [catManageOpen, setCatManageOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Category Form State
   const [catName, setCatName] = useState("");
@@ -63,6 +68,8 @@ function MenuPage() {
       if (activeCategory !== "all" && item.category !== activeCategory) {
         return false;
       }
+      if (statusFilter === "active" && !item.active) return false;
+      if (statusFilter === "inactive" && item.active) return false;
       if (search.trim()) {
         const q = search.toLowerCase();
         return (
@@ -73,7 +80,7 @@ function MenuPage() {
       }
       return true;
     });
-  }, [items, locationId, activeCategory, search]);
+  }, [items, locationId, activeCategory, statusFilter, search]);
 
   function openNewItem() {
     setEditingItem(null);
@@ -130,10 +137,34 @@ function MenuPage() {
     toast.success(editingItem ? "Product updated" : "Product created");
   }
 
-  function handleDeleteItem(id: string) {
+  function confirmDeleteItem(id: string) {
+    if (!canManage) return;
     const updated = deleteMenuItem(org.id, id);
     setItems(updated);
+    setDeleteConfirmId(null);
     toast.success("Product removed");
+  }
+
+  function handleDuplicateItem(id: string) {
+    if (!canManage) return;
+    const updated = duplicateMenuItem(org.id, id);
+    setItems(updated);
+    toast.success("Product duplicated");
+  }
+
+  function toggleItemActive(item: MenuItem) {
+    if (!canManage) return;
+    const updated = saveMenuItem(org.id, { ...item, active: !item.active });
+    setItems(updated);
+    toast.success(item.active ? "Product set to unavailable" : "Product is now available");
+  }
+
+  function handleDeleteCategory(id: string) {
+    if (!canManage) return;
+    const updated = deleteCategory(org.id, id);
+    setCategories(updated);
+    if (activeCategory === id) setActiveCategory("all");
+    toast.success("Category deleted");
   }
 
   function handleSaveCategory() {
@@ -167,26 +198,42 @@ function MenuPage() {
   return (
     <div className="mx-auto max-w-[1440px] space-y-6">
       <PageHeader
-        eyebrow={<span className="eyebrow">Catalog</span>}
+        eyebrow={
+          <div className="flex items-center gap-2">
+            <span className="eyebrow">{org.name}</span>
+            <DemoBadge label={t("interactiveBadge")} />
+          </div>
+        }
         title={t("title")}
         description={t("subtitle")}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
               <Eye className="mr-1.5 size-4" />
               {t("preview")}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setCatDialogOpen(true)}>
-              <Layers className="mr-1.5 size-4" />
-              {t("newCategory")}
-            </Button>
-            <Button size="sm" onClick={openNewItem}>
-              <Plus className="mr-1.5 size-4" />
-              {t("newProduct")}
-            </Button>
+            {canManage && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setCatManageOpen(true)}>
+                  <Layers className="mr-1.5 size-4" />
+                  {t("manageCategories")}
+                </Button>
+                <Button size="sm" onClick={openNewItem}>
+                  <Plus className="mr-1.5 size-4" />
+                  {t("newProduct")}
+                </Button>
+              </>
+            )}
           </div>
         }
       />
+
+      {!canManage && (
+        <div className="rounded-lg border border-warning/40 bg-warning/5 px-4 py-2.5 text-xs text-muted-foreground flex items-center gap-2">
+          <AlertCircle className="size-4 text-warning shrink-0" />
+          <span>{t("readOnlyNotice")}</span>
+        </div>
+      )}
 
       {/* Filter and Category Pills */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -288,18 +335,45 @@ function MenuPage() {
                     </span>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-end gap-1.5">
-                    <Button variant="ghost" size="icon" className="size-8" onClick={() => openEditItem(item)}>
-                      <Edit3 className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDeleteItem(item.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    <div className="mt-3 flex items-center justify-between gap-1.5">
+                    {canManage ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs px-2"
+                        onClick={() => toggleItemActive(item)}
+                      >
+                        {item.active ? t("item.unavailable") : t("item.available")}
+                      </Button>
+                    ) : <span />}
+                    <div className="flex items-center gap-1">
+                      {canManage && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8"
+                          title={t("item.duplicate")}
+                          onClick={() => handleDuplicateItem(item.id)}
+                        >
+                          <Sparkles className="size-4" />
+                        </Button>
+                      )}
+                      {canManage && (
+                        <Button variant="ghost" size="icon" className="size-8" onClick={() => openEditItem(item)}>
+                          <Edit3 className="size-4" />
+                        </Button>
+                      )}
+                      {canManage && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-destructive hover:bg-destructive/10"
+                          onClick={() => setDeleteConfirmId(item.id)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -307,6 +381,48 @@ function MenuPage() {
           })}
         </div>
       )}
+
+      {/* Manage Categories Dialog */}
+      <Dialog open={catManageOpen} onOpenChange={setCatManageOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("manageCategories")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex justify-end">
+              <Button size="sm" onClick={() => setCatDialogOpen(true)}>
+                <Plus className="mr-1 size-3.5" />
+                {t("newCategory")}
+              </Button>
+            </div>
+            <div className="divide-y rounded-md border">
+              {categories.map((c) => (
+                <div key={c.id} className="flex items-center justify-between p-3 text-sm">
+                  <div>
+                    <p className="font-medium">{c.name}</p>
+                    {c.description && <p className="text-xs text-muted-foreground">{c.description}</p>}
+                  </div>
+                  {canManage && categories.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-destructive"
+                      onClick={() => handleDeleteCategory(c.id)}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCatManageOpen(false)}>
+              {t("form.cancel")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Category Creation Dialog */}
       <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
@@ -454,6 +570,27 @@ function MenuPage() {
               {t("form.cancel")}
             </Button>
             <Button onClick={handleSaveItem}>{t("form.save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Item Confirmation Dialog */}
+      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("item.delete")}</DialogTitle>
+            <DialogDescription>{t("deleteSafePrompt")}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4 flex gap-2 sm:justify-end">
+            <Button variant="outline" onClick={() => setDeleteConfirmId(null)}>
+              {t("form.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteConfirmId && confirmDeleteItem(deleteConfirmId)}
+            >
+              {t("item.delete")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
