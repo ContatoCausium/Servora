@@ -1,26 +1,26 @@
 {
   "title": "Estoque e Ingredientes",
-  "subtitle": "Gestão de ingredientes, custos unitários, alertas de reposição e controle por unidade.",
+  "subtitle": "Gestão de insumos, custo unitário em USD, alertas de reposição e estoque por unidade.",
   "simulatedBadge": "Simulação Interativa",
   "actions": {
-    "newItem": "Novo insumo",
-    "compareLocations": "Comparar lojas",
+    "newItem": "Adicionar insumo",
+    "compareLocations": "Comparar unidades",
     "export": "Exportar CSV",
     "filter": "Filtros"
   },
   "kpis": {
-    "totalValue": "Valor Total Estimado",
+    "totalValue": "Valor Estimado em Estoque",
     "lowStock": "Itens com Estoque Baixo",
     "outOfStock": "Itens Esgotados",
     "expiringSoon": "Vencendo em < 7 Dias"
   },
   "categories": {
-    "all": "Todas categorias",
+    "all": "Todas as categorias",
     "meat": "Carnes e Aves",
     "produce": "Hortifrúti",
-    "dairy": "Laticínios e Queijos",
-    "bakery": "Panificação e Pães",
-    "dry_goods": "Secos e Azeites",
+    "dairy": "Laticínios e Ovos",
+    "bakery": "Pães e Panificação",
+    "dry_goods": "Secos, Molhos e Óleos",
     "beverages": "Bebidas e Xaropes",
     "packaging": "Embalagens e Descartáveis"
   },
@@ -36,34 +36,34 @@
     "actions": "Ações"
   },
   "status": {
-    "ok": "Em dia",
+    "ok": "Regular",
     "low": "Estoque baixo",
     "out": "Esgotado",
-    "expiring": "Vence logo",
+    "expiring": "Próximo do vencimento",
     "inactive": "Inativo"
   },
   "modal": {
     "titleNew": "Cadastrar Novo Insumo",
-    "titleEdit": "Editar Insumo de Estoque",
+    "titleEdit": "Editar Insumo",
     "name": "Nome do Ingrediente",
-    "sku": "Código / SKU",
+    "sku": "SKU / Código",
     "category": "Categoria",
     "unit": "Unidade de Medida",
-    "quantity": "Quantidade em Estoque",
-    "minQuantity": "Estoque Mínimo (Ponto de Pedido)",
-    "cost": "Custo Unitário em USD",
+    "quantity": "Quantidade Disponível",
+    "minQuantity": "Estoque Mínimo",
+    "cost": "Custo Unitário (USD)",
     "supplier": "Fornecedor / Distribuidor",
     "expirationDate": "Data de Validade (Opcional)",
-    "active": "Controle ativo de inventário",
+    "active": "Item ativo para controle",
     "cancel": "Cancelar",
     "save": "Salvar Insumo"
   },
   "comparison": {
     "title": "Comparativo de Estoque entre Unidades",
-    "desc": "Visualize e compare a disponibilidade de ingredientes entre as lojas ativas."
+    "desc": "Visualize a disponibilidade e volume de cada loja separadamente."
   },
   "empty": {
     "title": "Nenhum insumo encontrado",
-    "body": "Ajuste seus filtros de busca ou cadastre um novo ingrediente no estoque."
+    "body": "Ajuste os filtros de busca ou cadastre um novo ingrediente para esta unidade."
   }
 }
