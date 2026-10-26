@@ -1,0 +1,513 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import {
+  BookOpenText, Plus, Search, Eye, Sparkles, Clock, Trash2, Edit3, Check, DollarSign, Store,
+  Layers, ChefHat, AlertCircle
+} from "lucide-react";
+
+import { useWorkspace } from "@/components/app/workspace-context";
+import { PageHeader, Panel } from "@/components/app/page";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle
+} from "@/components/ui/dialog";
+import {
+  listCategories, saveCategory, listMenuItems, saveMenuItem, deleteMenuItem,
+  type MenuItem, type MenuCategory, type ModifierGroup
+} from "@/lib/menu-service";
+
+export const Route = createFileRoute("/_authenticated/_app/menu")({
+  head: () => ({
+    meta: [{ title: "Menu & Products · Servora" }],
+  }),
+  component: MenuPage,
+});
+
+function MenuPage() {
+  const { t } = useTranslation("menu");
+  const { org, locationId } = useWorkspace();
+
+  const [categories, setCategories] = useState<MenuCategory[]>(() => listCategories(org.id));
+  const [items, setItems] = useState<MenuItem[]>(() => listMenuItems(org.id));
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [itemDialogOpen, setItemDialogOpen] = useState(false);
+  const [catDialogOpen, setCatDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+
+  // Category Form State
+  const [catName, setCatName] = useState("");
+  const [catDesc, setCatDesc] = useState("");
+
+  // Item Form State
+  const [formName, setFormName] = useState("");
+  const [formDesc, setFormDesc] = useState("");
+  const [formCategory, setFormCategory] = useState("");
+  const [formPrice, setFormPrice] = useState("");
+  const [formPrep, setFormPrep] = useState("10");
+  const [formImage, setFormImage] = useState("");
+  const [formActive, setFormActive] = useState(true);
+  const [formModifiers, setFormModifiers] = useState<ModifierGroup[]>([]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      if (locationId !== "all" && item.locationIds.length > 0 && !item.locationIds.includes(locationId)) {
+        return false;
+      }
+      if (activeCategory !== "all" && item.category !== activeCategory) {
+        return false;
+      }
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        return (
+          item.name.toLowerCase().includes(q) ||
+          item.description.toLowerCase().includes(q) ||
+          item.category.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [items, locationId, activeCategory, search]);
+
+  function openNewItem() {
+    setEditingItem(null);
+    setFormName("");
+    setFormDesc("");
+    setFormCategory(categories[0]?.id || "default");
+    setFormPrice("12.00");
+    setFormPrep("10");
+    setFormImage("");
+    setFormActive(true);
+    setFormModifiers([]);
+    setItemDialogOpen(true);
+  }
+
+  function openEditItem(item: MenuItem) {
+    setEditingItem(item);
+    setFormName(item.name);
+    setFormDesc(item.description);
+    setFormCategory(item.category);
+    setFormPrice((item.priceCents / 100).toFixed(2));
+    setFormPrep(String(item.prepTimeMinutes));
+    setFormImage(item.imageUrl || "");
+    setFormActive(item.active);
+    setFormModifiers(item.modifierGroups || []);
+    setItemDialogOpen(true);
+  }
+
+  function handleSaveItem() {
+    if (!formName.trim()) {
+      toast.error("Item name is required");
+      return;
+    }
+    const cents = Math.round(parseFloat(formPrice || "0") * 100);
+    const prep = parseInt(formPrep || "5", 10);
+
+    const toSave: MenuItem = {
+      id: editingItem?.id || `item-${Date.now()}`,
+      orgId: org.id,
+      name: formName.trim(),
+      description: formDesc.trim(),
+      category: formCategory || categories[0]?.id || "default",
+      priceCents: cents,
+      prepTimeMinutes: prep,
+      imageUrl: formImage.trim() || undefined,
+      active: formActive,
+      locationIds: editingItem?.locationIds || [],
+      modifierGroups: formModifiers,
+      createdAt: editingItem?.createdAt || new Date().toISOString(),
+    };
+
+    const updated = saveMenuItem(org.id, toSave);
+    setItems(updated);
+    setItemDialogOpen(false);
+    toast.success(editingItem ? "Product updated" : "Product created");
+  }
+
+  function handleDeleteItem(id: string) {
+    const updated = deleteMenuItem(org.id, id);
+    setItems(updated);
+    toast.success("Product removed");
+  }
+
+  function handleSaveCategory() {
+    if (!catName.trim()) return;
+    const catId = catName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const newCat: MenuCategory = {
+      id: catId || `cat-${Date.now()}`,
+      name: catName.trim(),
+      description: catDesc.trim() || undefined,
+    };
+    const updated = saveCategory(org.id, newCat);
+    setCategories(updated);
+    setCatDialogOpen(false);
+    setCatName("");
+    setCatDesc("");
+    toast.success("Category added");
+  }
+
+  function addModifierGroup() {
+    const newGroup: ModifierGroup = {
+      id: `mg-${Date.now()}`,
+      name: "Choose Option",
+      required: false,
+      minSelections: 0,
+      maxSelections: 1,
+      options: [{ id: `opt-${Date.now()}`, name: "Regular", priceCents: 0 }],
+    };
+    setFormModifiers([...formModifiers, newGroup]);
+  }
+
+  return (
+    <div className="mx-auto max-w-[1440px] space-y-6">
+      <PageHeader
+        eyebrow={<span className="eyebrow">Catalog</span>}
+        title={t("title")}
+        description={t("subtitle")}
+        actions={
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)}>
+              <Eye className="mr-1.5 size-4" />
+              {t("preview")}
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setCatDialogOpen(true)}>
+              <Layers className="mr-1.5 size-4" />
+              {t("newCategory")}
+            </Button>
+            <Button size="sm" onClick={openNewItem}>
+              <Plus className="mr-1.5 size-4" />
+              {t("newProduct")}
+            </Button>
+          </div>
+        }
+      />
+
+      {/* Filter and Category Pills */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-3 top-2.5 size-4 text-muted-foreground" />
+          <Input
+            placeholder={t("searchPlaceholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            variant={activeCategory === "all" ? "default" : "secondary"}
+            size="sm"
+            onClick={() => setActiveCategory("all")}
+            className="text-xs h-8"
+          >
+            {t("allCategories")}
+          </Button>
+          {categories.map((c) => (
+            <Button
+              key={c.id}
+              variant={activeCategory === c.id ? "default" : "secondary"}
+              size="sm"
+              onClick={() => setActiveCategory(c.id)}
+              className="text-xs h-8"
+            >
+              {c.name}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Grid of Menu Items */}
+      {filteredItems.length === 0 ? (
+        <Panel className="p-12 text-center">
+          <BookOpenText className="mx-auto size-12 text-muted-foreground/50" />
+          <h3 className="mt-4 text-base font-semibold">{t("empty.title")}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{t("empty.body")}</p>
+          <Button size="sm" onClick={openNewItem} className="mt-4">
+            <Plus className="mr-1.5 size-4" />
+            {t("empty.action")}
+          </Button>
+        </Panel>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredItems.map((item) => {
+            const cat = categories.find((c) => c.id === item.category);
+            return (
+              <div
+                key={item.id}
+                className="group flex flex-col justify-between overflow-hidden rounded-xl border bg-card p-4 transition-all hover:shadow-md"
+              >
+                <div className="space-y-3">
+                  <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-muted">
+                    {item.imageUrl ? (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center text-muted-foreground/40">
+                        <ChefHat className="size-10" />
+                      </div>
+                    )}
+                    <div className="absolute right-2 top-2 flex gap-1">
+                      <Badge variant={item.active ? "default" : "secondary"} className="text-[10px]">
+                        {item.active ? t("item.available") : t("item.unavailable")}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold leading-tight">{item.name}</h3>
+                      <span className="tabular text-base font-bold text-primary">
+                        ${(item.priceCents / 100).toFixed(2)}
+                      </span>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.description}</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 border-t pt-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="size-3.5" />
+                      {t("item.prepTime", { min: item.prepTimeMinutes })}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Store className="size-3.5" />
+                      {item.locationIds.length === 0
+                        ? t("item.allStores")
+                        : t("item.stores", { count: item.locationIds.length })}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-end gap-1.5">
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => openEditItem(item)}>
+                      <Edit3 className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-destructive hover:bg-destructive/10"
+                      onClick={() => handleDeleteItem(item.id)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Category Creation Dialog */}
+      <Dialog open={catDialogOpen} onOpenChange={setCatDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("categoryForm.title")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>{t("categoryForm.name")}</Label>
+              <Input value={catName} onChange={(e) => setCatName(e.target.value)} autoFocus />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{t("categoryForm.description")}</Label>
+              <Input value={catDesc} onChange={(e) => setCatDesc(e.target.value)} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCatDialogOpen(false)}>
+              {t("form.cancel")}
+            </Button>
+            <Button onClick={handleSaveCategory}>{t("categoryForm.save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Product Edit / Creation Dialog */}
+      <Dialog open={itemDialogOpen} onOpenChange={setItemDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{editingItem ? t("form.titleEdit") : t("form.titleNew")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>{t("form.name")}</Label>
+              <Input value={formName} onChange={(e) => setFormName(e.target.value)} />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>{t("form.description")}</Label>
+              <Input value={formDesc} onChange={(e) => setFormDesc(e.target.value)} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>{t("form.category")}</Label>
+                <select
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  className="flex h-9 w-full rounded-md border bg-background px-3 py-1 text-sm"
+                >
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("form.price")}</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={formPrice}
+                  onChange={(e) => setFormPrice(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>{t("form.prepTime")}</Label>
+                <Input
+                  type="number"
+                  value={formPrep}
+                  onChange={(e) => setFormPrep(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>{t("form.imageUrl")}</Label>
+                <Input
+                  placeholder="https://images.unsplash.com/..."
+                  value={formImage}
+                  onChange={(e) => setFormImage(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Modifier Groups Section */}
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between pb-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  {t("form.modifierGroups")}
+                </Label>
+                <Button type="button" variant="ghost" size="sm" onClick={addModifierGroup}>
+                  <Plus className="mr-1 size-3.5" />
+                  {t("form.addGroup")}
+                </Button>
+              </div>
+
+              {formModifiers.map((group, gIdx) => (
+                <div key={group.id} className="mb-3 rounded-lg border bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Input
+                      value={group.name}
+                      onChange={(e) => {
+                        const next = [...formModifiers];
+                        const g = next[gIdx];
+                        if (g) g.name = e.target.value;
+                        setFormModifiers(next);
+                      }}
+                      className="h-8 text-sm font-semibold"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 text-destructive"
+                      onClick={() => setFormModifiers(formModifiers.filter((_, i) => i !== gIdx))}
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-3">
+                    <label className="flex items-center gap-1.5">
+                      <input
+                        type="checkbox"
+                        checked={group.required}
+                        onChange={(e) => {
+                          const next = [...formModifiers];
+                          const g = next[gIdx];
+                          if (g) g.required = e.target.checked;
+                          setFormModifiers(next);
+                        }}
+                      />
+                      {t("form.groupRequired")}
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setItemDialogOpen(false)}>
+              {t("form.cancel")}
+            </Button>
+            <Button onClick={handleSaveItem}>{t("form.save")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Live Customer Preview Modal */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{t("previewModal.title")}</DialogTitle>
+            <DialogDescription>{t("previewModal.subtitle")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {categories.map((c) => {
+              const catItems = items.filter((i) => i.category === c.id && i.active);
+              if (catItems.length === 0) return null;
+              return (
+                <div key={c.id} className="space-y-3">
+                  <div className="border-b pb-1">
+                    <h4 className="font-bold text-lg">{c.name}</h4>
+                    {c.description && <p className="text-xs text-muted-foreground">{c.description}</p>}
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {catItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex gap-3 rounded-lg border p-3 bg-card hover:border-primary transition-colors cursor-pointer"
+                      >
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt=""
+                            className="size-20 shrink-0 rounded-md object-cover"
+                          />
+                        )}
+                        <div className="flex flex-col justify-between flex-1 min-w-0">
+                          <div>
+                            <p className="font-semibold text-sm truncate">{item.name}</p>
+                            <p className="line-clamp-2 text-xs text-muted-foreground mt-0.5">
+                              {item.description}
+                            </p>
+                          </div>
+                          <p className="font-bold text-sm text-primary mt-2">
+                            ${(item.priceCents / 100).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
