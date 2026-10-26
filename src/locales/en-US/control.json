@@ -206,6 +206,7 @@
   "nav": {
     "overview": "Overview",
     "orgs": "Organizations",
+    "billing": "Billing & subscriptions",
     "plans": "Plans & pricing",
     "demo": "Demo studio",
     "audit": "Audit log",

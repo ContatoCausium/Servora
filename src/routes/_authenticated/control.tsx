@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Building2, CreditCard, FlaskConical, History, LayoutGrid, LogOut, Settings2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Building2, CreditCard, DollarSign, FlaskConical, History, LayoutGrid, LogOut, Settings2, ShieldCheck } from "lucide-react";
 
 import { ServoraMark } from "@/components/app/brand-mark";
 import { AppError, AppPending } from "@/components/app/states";
@@ -42,6 +42,7 @@ export const Route = createFileRoute("/_authenticated/control")({
 const NAV = [
   { to: "/control", key: "overview", icon: LayoutGrid, exact: true },
   { to: "/control/organizations", key: "orgs", icon: Building2 },
+  { to: "/control/subscriptions", key: "subscriptions", icon: DollarSign },
   { to: "/control/plans", key: "plans", icon: CreditCard },
   { to: "/control/demo", key: "demo", icon: FlaskConical },
   { to: "/control/audit", key: "audit", icon: History },
