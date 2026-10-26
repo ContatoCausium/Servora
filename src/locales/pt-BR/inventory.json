@@ -1,9 +1,9 @@
 {
   "title": "Estoque e Ingredientes",
-  "subtitle": "Gerencie insumos, custos unitários em USD, alertas de reposição e estoque por unidade.",
+  "subtitle": "Gerencie insumos, custos unitários em USD, estoque mínimo e suprimentos por loja.",
   "simulatedBadge": "Simulação Interativa",
   "actions": {
-    "newItem": "Novo insumo",
+    "newItem": "Adicionar insumo",
     "compareLocations": "Comparar lojas",
     "export": "Exportar CSV",
     "filter": "Filtros"
@@ -19,16 +19,16 @@
     "meat": "Carnes e Aves",
     "produce": "Hortifrúti",
     "dairy": "Laticínios e Queijos",
-    "bakery": "Panificação e Pães",
+    "bakery": "Pães e Panificação",
     "dry_goods": "Secos e Óleos",
     "beverages": "Bebidas e Xaropes",
-    "packaging": "Embalagens"
+    "packaging": "Embalagens e Descartáveis"
   },
   "table": {
-    "item": "Insumo & SKU",
+    "item": "Item e SKU",
     "category": "Categoria",
-    "stock": "Estoque Atual",
-    "min": "Estoque Mínimo",
+    "stock": "Em Estoque",
+    "min": "Mínimo",
     "unitCost": "Custo Unitário",
     "totalValue": "Valor Total (USD)",
     "supplier": "Fornecedor",
@@ -36,10 +36,10 @@
     "actions": "Ações"
   },
   "status": {
-    "ok": "Normal",
+    "ok": "Em estoque",
     "low": "Estoque baixo",
     "out": "Esgotado",
-    "expiring": "Vence em breve",
+    "expiring": "Próximo ao vencimento",
     "inactive": "Inativo"
   },
   "modal": {
@@ -50,20 +50,20 @@
     "category": "Categoria",
     "unit": "Unidade de Medida",
     "quantity": "Quantidade Disponível",
-    "minQuantity": "Estoque Mínimo",
+    "minQuantity": "Estoque Mínimo (Alerta)",
     "cost": "Custo Unitário em USD",
     "supplier": "Fornecedor / Distribuidor",
     "expirationDate": "Data de Validade (Opcional)",
-    "active": "Controle ativo no estoque",
+    "active": "Controle de estoque ativo",
     "cancel": "Cancelar",
     "save": "Salvar Insumo"
   },
   "comparison": {
-    "title": "Comparação de Estoque por Loja",
-    "desc": "Visualize a disponibilidade e níveis de suprimento entre as diferentes unidades da rede."
+    "title": "Comparativo entre Unidades",
+    "desc": "Visualize a disponibilidade e níveis de estoque em cada restaurante cadastrado."
   },
   "empty": {
     "title": "Nenhum insumo encontrado",
-    "body": "Ajuste os filtros de pesquisa ou cadastre um novo ingrediente para esta unidade."
+    "body": "Ajuste seus filtros de busca ou cadastre um novo ingrediente para começar."
   }
 }
