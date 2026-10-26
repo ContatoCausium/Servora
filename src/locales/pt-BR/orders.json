@@ -60,5 +60,40 @@
     "submit": "Confirmar e Criar Pedido",
     "productUnavailable": "Item indisponível no momento",
     "cancel": "Cancelar"
+  },
+  "pos": {
+    "title": "Ponto de Venda",
+    "searchPlaceholder": "Buscar itens do cardápio...",
+    "simulatedBadge": "Terminal POS Simulado",
+    "allCategories": "Todos",
+    "currentTicket": "Comanda Atual",
+    "attendant": "Atendente",
+    "customerPlaceholder": "Cliente / Mesa (ex.: Mesa 4 / Carlos)",
+    "emptyCart": "Toque nos itens do catálogo para adicionar à comanda.",
+    "subtotal": "Subtotal",
+    "tax": "Imposto ({{rate}}%)",
+    "discount": "Desconto",
+    "applyDiscount": "Aplicar desconto",
+    "total": "Total USD",
+    "suspend": "Suspender",
+    "suspended": "Comandas Suspensas",
+    "resume": "Retomar",
+    "clearTicket": "Cancelar Comanda",
+    "confirmClear": "Tem certeza que deseja cancelar e esvaziar esta comanda?",
+    "pay": "Pagar {{amount}}",
+    "requiredModifier": "Selecione todos os adicionais obrigatórios antes de incluir.",
+    "checkoutTitle": "Checkout de Pagamento Simulado",
+    "amountDue": "Total a Pagar",
+    "tendered": "Valor Recebido (USD)",
+    "changeDue": "Troco a Devolver",
+    "confirmSale": "Confirmar Venda Simulada",
+    "receiptTitle": "Recibo Demonstrativo",
+    "receiptNote": "Transação Simulada · Nenhum faturamento real ou cobrança financeira registrada.",
+    "closeNewOrder": "Fechar e Nova Comanda",
+    "methods": {
+      "cash": "Dinheiro",
+      "card": "Cartão (Sim)",
+      "digital": "Pix / Carteira"
+    }
   }
 }

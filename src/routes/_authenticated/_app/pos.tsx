@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Search, Plus, Minus, Trash2, ShoppingBag, PauseCircle, PlayCircle,
-  DollarSign, CreditCard, Smartphone, CheckCircle, Receipt, ArrowLeft, RefreshCw
+  DollarSign, CreditCard, Smartphone, Receipt, XCircle, Tag, Printer
 } from "lucide-react";
 
 import { useWorkspace } from "@/components/app/workspace-context";
@@ -43,9 +43,16 @@ function POSPage() {
   const [selectedMods, setSelectedMods] = useState<Record<string, ModifierOption[]>>({});
   const [itemNotes, setItemNotes] = useState("");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [discountModalOpen, setDiscountModalOpen] = useState(false);
+  const [discountInput, setDiscountInput] = useState("");
   const [payMethod, setPayMethod] = useState<POSPaymentMethod>("cash");
   const [tenderedInput, setTenderedInput] = useState("");
   const [receiptSession, setReceiptSession] = useState<typeof session | null>(null);
+
+  // Refresh session when active location changes
+  useEffect(() => {
+    setSession(getPOSSession(org.id, activeLocId, cashierName));
+  }, [org.id, activeLocId, cashierName]);
 
   const menuItems = useMemo(() => listMenuItems(org.id), [org.id]);
   const categories = useMemo(() => {
@@ -76,6 +83,14 @@ function POSPage() {
 
   const handleConfirmModifiers = () => {
     if (!modModalItem) return;
+    // Verify required modifier groups
+    const missingRequired = modModalItem.modifierGroups?.filter(
+      (g) => g.required && (!selectedMods[g.id] || selectedMods[g.id]!.length === 0)
+    );
+    if (missingRequired && missingRequired.length > 0) {
+      toast.error(t("pos.requiredModifier"));
+      return;
+    }
     const flatMods = Object.entries(selectedMods).flatMap(([groupId, opts]) => {
       const group = modModalItem.modifierGroups?.find((g) => g.id === groupId);
       return opts.map((opt) => ({
@@ -102,10 +117,25 @@ function POSPage() {
     setSession(updated);
   };
 
+  const handleClearTicket = () => {
+    if (session.cart.length === 0) return;
+    setSession(getPOSSession(org.id, activeLocId, cashierName));
+    toast.info(t("pos.clearTicket"));
+  };
+
+  const handleApplyDiscountSubmit = () => {
+    const val = parseFloat(discountInput || "0");
+    const cents = Math.round(Math.max(0, isNaN(val) ? 0 : val) * 100);
+    const updated = applyDiscount(session, cents);
+    setSession(updated);
+    setDiscountModalOpen(false);
+    toast.success(t("pos.applyDiscount"));
+  };
+
   const handleSuspend = () => {
     if (session.cart.length === 0) return;
     suspendSession(session);
-    toast.info("Order suspended");
+    toast.info(t("pos.suspend"));
     setSession(getPOSSession(org.id, activeLocId, cashierName));
   };
 
@@ -113,7 +143,7 @@ function POSPage() {
     const resumed = resumeSession(org.id, id);
     if (resumed) {
       setSession(resumed);
-      toast.success("Suspended order resumed");
+      toast.success(t("pos.resume"));
     }
   };
 
@@ -152,15 +182,15 @@ function POSPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-50/50 dark:bg-amber-950/20">
-              Simulated POS Terminal
+            <Badge variant="outline" className="border-amber-500/30 text-amber-600 bg-amber-50/50 dark:bg-amber-950/20 text-xs">
+              {t("pos.simulatedBadge")}
             </Badge>
             {session.suspendedSessions.length > 0 && (
-              <div className="flex items-center gap-1.5">
-                <span className="text-xs text-muted-foreground">Suspended:</span>
+              <div className="flex items-center gap-1.5 overflow-x-auto">
+                <span className="text-xs text-muted-foreground hidden sm:inline">{t("pos.suspended")}:</span>
                 {session.suspendedSessions.map((s) => (
                   <Button key={s.id} size="sm" variant="secondary" onClick={() => handleResume(s.id)} className="h-7 text-xs px-2">
-                    <PlayCircle className="size-3 mr-1" /> Resume
+                    <PlayCircle className="size-3 mr-1" /> {s.customerName || t("pos.resume")}
                   </Button>
                 ))}
               </div>
@@ -301,14 +331,20 @@ function POSPage() {
             <span>{formatMoney(session.totalCents)}</span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            <Button size="sm" variant="outline" onClick={handleSuspend} disabled={session.cart.length === 0} className="h-8 text-xs">
-              <PauseCircle className="size-3.5 mr-1" /> Suspend
+          <div className="grid grid-cols-3 gap-1.5 mt-2">
+            <Button size="sm" variant="outline" onClick={() => { setDiscountInput((session.discountCents / 100).toFixed(2)); setDiscountModalOpen(true); }} className="h-8 text-[11px] px-1">
+              <Tag className="size-3 mr-1" /> {t("pos.discount")}
             </Button>
-            <Button size="sm" variant="default" onClick={handleStartCheckout} disabled={session.cart.length === 0} className="h-8 text-xs">
-              Pay {formatMoney(session.totalCents)}
+            <Button size="sm" variant="outline" onClick={handleSuspend} disabled={session.cart.length === 0} className="h-8 text-[11px] px-1">
+              <PauseCircle className="size-3 mr-1" /> {t("pos.suspend")}
+            </Button>
+            <Button size="sm" variant="destructive" onClick={handleClearTicket} disabled={session.cart.length === 0} className="h-8 text-[11px] px-1">
+              <XCircle className="size-3 mr-1" /> {t("pos.clearTicket")}
             </Button>
           </div>
+          <Button size="sm" variant="default" onClick={handleStartCheckout} disabled={session.cart.length === 0} className="w-full h-9 text-xs font-semibold mt-1">
+            {t("pos.pay", { amount: formatMoney(session.totalCents) })}
+          </Button>
         </div>
       </div>
 
@@ -363,54 +399,95 @@ function POSPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Discount Dialog */}
+      <Dialog open={discountModalOpen} onOpenChange={setDiscountModalOpen}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>{t("pos.applyDiscount")}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-2">
+            <label className="text-xs font-medium text-muted-foreground">Discount (USD)</label>
+            <Input
+              type="number"
+              step="0.50"
+              min="0"
+              value={discountInput}
+              onChange={(e) => setDiscountInput(e.target.value)}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDiscountModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleApplyDiscountSubmit}>Apply</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Checkout Modal */}
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Simulate Checkout</DialogTitle>
+            <DialogTitle>{t("pos.checkoutTitle")}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
             <div className="p-3 bg-muted/40 rounded-lg text-center">
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">Amount Due</span>
-              <p className="text-3xl font-bold mt-1">{formatMoney(session.totalCents)}</p>
+              <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("pos.amountDue")}</span>
+              <p className="text-3xl font-bold mt-1 text-primary">{formatMoney(session.totalCents)}</p>
             </div>
 
             <div className="grid grid-cols-3 gap-2">
               <Button
+                type="button"
                 variant={payMethod === "cash" ? "default" : "outline"}
                 onClick={() => setPayMethod("cash")}
                 className="flex-col h-14 text-xs gap-1"
               >
-                <DollarSign className="size-4" /> Cash
+                <DollarSign className="size-4" /> {t("pos.methods.cash")}
               </Button>
               <Button
+                type="button"
                 variant={payMethod === "card" ? "default" : "outline"}
                 onClick={() => setPayMethod("card")}
                 className="flex-col h-14 text-xs gap-1"
               >
-                <CreditCard className="size-4" /> Card (Sim)
+                <CreditCard className="size-4" /> {t("pos.methods.card")}
               </Button>
               <Button
+                type="button"
                 variant={payMethod === "digital" ? "default" : "outline"}
                 onClick={() => setPayMethod("digital")}
                 className="flex-col h-14 text-xs gap-1"
               >
-                <Smartphone className="size-4" /> Digital Pay
+                <Smartphone className="size-4" /> {t("pos.methods.digital")}
               </Button>
             </div>
 
             {payMethod === "cash" && (
-              <div className="flex flex-col gap-2">
-                <label className="text-xs font-medium">Amount Tendered (USD)</label>
+              <div className="flex flex-col gap-2.5">
+                <label className="text-xs font-medium">{t("pos.tendered")}</label>
                 <Input
                   type="number"
                   step="0.01"
                   value={tenderedInput}
                   onChange={(e) => setTenderedInput(e.target.value)}
                 />
+                <div className="flex gap-1.5">
+                  {[10, 20, 50, 100].map((preset) => (
+                    <Button
+                      key={preset}
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      className="h-7 text-xs flex-1"
+                      onClick={() => setTenderedInput(String(preset))}
+                    >
+                      ${preset}
+                    </Button>
+                  ))}
+                </div>
                 {parseFloat(tenderedInput) * 100 > session.totalCents && (
-                  <p className="text-xs text-emerald-600 font-medium">
-                    Change Due: {formatMoney(Math.round(parseFloat(tenderedInput) * 100) - session.totalCents)}
+                  <p className="text-xs text-emerald-600 font-medium pt-1">
+                    {t("pos.changeDue")}: {formatMoney(Math.round(parseFloat(tenderedInput) * 100) - session.totalCents)}
                   </p>
                 )}
               </div>
@@ -419,7 +496,7 @@ function POSPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setCheckoutOpen(false)}>Cancel</Button>
             <Button onClick={handleCompleteSale} className="bg-primary text-primary-foreground">
-              Confirm Simulated Sale
+              {t("pos.confirmSale")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -430,39 +507,54 @@ function POSPage() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Receipt className="size-5 text-emerald-600" /> Receipt Demonstration
+              <Receipt className="size-5 text-emerald-600" /> {t("pos.receiptTitle")}
             </DialogTitle>
           </DialogHeader>
           {receiptSession && (
-            <div className="flex flex-col gap-3 font-mono text-xs border rounded-md p-3 bg-muted/20">
-              <div className="text-center border-b pb-2">
-                <p className="font-bold text-sm">{org.name}</p>
-                <p className="text-[10px] text-muted-foreground">Servora Simulated Terminal</p>
-                <p className="text-[10px] text-muted-foreground">Order #{receiptSession.id.slice(-6)}</p>
+            <div className="flex flex-col gap-3 font-mono text-xs border rounded-md p-4 bg-muted/10 shadow-inner">
+              <div className="text-center border-b pb-2 space-y-0.5">
+                <p className="font-bold text-base">{org.name}</p>
+                <p className="text-[10px] text-muted-foreground">{t("pos.simulatedBadge")}</p>
+                <p className="text-[10px] text-muted-foreground">Ticket #{receiptSession.id.slice(-6).toUpperCase()}</p>
+                <p className="text-[10px] text-muted-foreground">{new Date().toLocaleTimeString()}</p>
               </div>
               <div className="flex flex-col gap-1 border-b pb-2">
                 {receiptSession.cart.map((itm) => (
-                  <div key={itm.id} className="flex justify-between">
-                    <span>{itm.quantity}x {itm.productName}</span>
+                  <div key={itm.id} className="flex justify-between items-start">
+                    <div>
+                      <span>{itm.quantity}x {itm.productName}</span>
+                      {itm.modifiers.length > 0 && (
+                        <span className="block text-[10px] text-muted-foreground">+ {itm.modifiers.map(m => m.optionName).join(", ")}</span>
+                      )}
+                    </div>
                     <span>{formatMoney(itm.subtotalCents)}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col gap-0.5 text-right">
-                <div>Subtotal: {formatMoney(receiptSession.subtotalCents)}</div>
-                <div>Tax: {formatMoney(receiptSession.taxCents)}</div>
-                <div className="font-bold text-sm pt-1 border-t">Total: {formatMoney(receiptSession.totalCents)}</div>
+              <div className="flex flex-col gap-1 text-right">
+                <div className="flex justify-between text-muted-foreground"><span>Subtotal:</span><span>{formatMoney(receiptSession.subtotalCents)}</span></div>
+                {receiptSession.discountCents > 0 && (
+                  <div className="flex justify-between text-emerald-600"><span>Discount:</span><span>-{formatMoney(receiptSession.discountCents)}</span></div>
+                )}
+                <div className="flex justify-between text-muted-foreground"><span>Tax ({receiptSession.taxRatePercent}%):</span><span>{formatMoney(receiptSession.taxCents)}</span></div>
+                <div className="flex justify-between font-bold text-sm pt-1 border-t text-foreground"><span>Total:</span><span>{formatMoney(receiptSession.totalCents)}</span></div>
+                {receiptSession.tenderedCents ? (
+                  <div className="flex justify-between text-muted-foreground pt-1"><span>Tendered ({receiptSession.paymentMethod}):</span><span>{formatMoney(receiptSession.tenderedCents)}</span></div>
+                ) : null}
                 {receiptSession.changeDueCents ? (
-                  <div className="text-emerald-600 font-semibold">Change Due: {formatMoney(receiptSession.changeDueCents)}</div>
+                  <div className="flex justify-between text-emerald-600 font-semibold"><span>Change:</span><span>{formatMoney(receiptSession.changeDueCents)}</span></div>
                 ) : null}
               </div>
-              <p className="text-center text-[10px] text-muted-foreground pt-2">
-                Simulated Transaction · No real charges incurred.
+              <p className="text-center text-[10px] text-muted-foreground pt-2 border-t border-dashed">
+                {t("pos.receiptNote")}
               </p>
             </div>
           )}
-          <DialogFooter>
-            <Button onClick={() => setReceiptSession(null)}>Close & Start New Order</Button>
+          <DialogFooter className="flex-row gap-2 justify-end">
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1">
+              <Printer className="size-3.5" /> Print
+            </Button>
+            <Button size="sm" onClick={() => setReceiptSession(null)}>{t("pos.closeNewOrder")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

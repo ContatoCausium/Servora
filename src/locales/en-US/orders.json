@@ -60,5 +60,40 @@
     "submit": "Confirm & Create Order",
     "productUnavailable": "Item is currently marked unavailable",
     "cancel": "Cancel"
+  },
+  "pos": {
+    "title": "Point of Sale",
+    "searchPlaceholder": "Search menu items...",
+    "simulatedBadge": "Simulated POS Terminal",
+    "allCategories": "All",
+    "currentTicket": "Current Ticket",
+    "attendant": "Attendant",
+    "customerPlaceholder": "Customer / Table (e.g. Table 4 / Alex)",
+    "emptyCart": "Tap items from the catalogue to add them to this ticket.",
+    "subtotal": "Subtotal",
+    "tax": "Tax ({{rate}}%)",
+    "discount": "Discount",
+    "applyDiscount": "Apply discount",
+    "total": "Total USD",
+    "suspend": "Suspend",
+    "suspended": "Suspended Tickets",
+    "resume": "Resume",
+    "clearTicket": "Cancel Ticket",
+    "confirmClear": "Are you sure you want to discard this ticket?",
+    "pay": "Pay {{amount}}",
+    "requiredModifier": "Please select all required options before adding.",
+    "checkoutTitle": "Simulated Payment Checkout",
+    "amountDue": "Amount Due",
+    "tendered": "Amount Tendered (USD)",
+    "changeDue": "Change Due",
+    "confirmSale": "Confirm Simulated Sale",
+    "receiptTitle": "Demonstrative Receipt",
+    "receiptNote": "Simulated Transaction · No real charges or financial records created.",
+    "closeNewOrder": "Close & Start New Ticket",
+    "methods": {
+      "cash": "Cash",
+      "card": "Card (Sim)",
+      "digital": "Digital Pay"
+    }
   }
 }
