@@ -417,11 +417,6 @@
       "type": "Utilize PNG, JPG, SVG ou WebP.",
       "size": "O arquivo do logo deve ter 2 MB ou menos."
     }
-  } {{name}}",
-    "description": "Os membros mantêm acesso de leitura, mas toda alteração fica bloqueada até a reativação. Registrado na auditoria.",
-    "reactivateDescription": "Restaura a operação normal desta organização. Registrado na auditoria.",
-    "confirm": "Suspender",
-    "reactivate": "Reativar"
   },
   "auditPage": {
     "subtitle": "Registro imutável de alterações sensíveis: membros, convites, propriedade, planos, limites e funções da plataforma.",
