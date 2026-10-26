@@ -1,0 +1,70 @@
+{
+  "title": "Menu & Products",
+  "subtitle": "Manage catalog, categories, pricing, modifiers and availability per store.",
+  "categories": "Categories",
+  "products": "Products",
+  "searchPlaceholder": "Search items, categories, ingredients…",
+  "allCategories": "All categories",
+  "newProduct": "New Product",
+  "newCategory": "New Category",
+  "preview": "Customer Preview",
+  "empty": {
+    "title": "No products found",
+    "body": "Create your first product or try another search filter.",
+    "action": "Add Product"
+  },
+  "item": {
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "prepTime": "{{min}} min",
+    "stores": "{{count}} stores",
+    "allStores": "All stores",
+    "duplicate": "Duplicate",
+    "edit": "Edit",
+    "delete": "Delete",
+    "price": "Price",
+    "modifiers": "Modifiers: {{count}}"
+  },
+  "form": {
+    "titleNew": "Create Product",
+    "titleEdit": "Edit Product",
+    "name": "Item Name",
+    "description": "Description",
+    "category": "Category",
+    "selectCategory": "Select category…",
+    "price": "Price (USD)",
+    "prepTime": "Estimated Prep Time (minutes)",
+    "imageUrl": "Image URL",
+    "notes": "Internal Kitchen Notes",
+    "active": "Item is currently available",
+    "locations": "Store Availability",
+    "allLocationsHint": "Available in all locations by default",
+    "modifierGroups": "Modifier & Add-on Groups",
+    "addGroup": "Add Modifier Group",
+    "groupName": "Group Name (e.g. Size, Meat Temperature, Add-ons)",
+    "groupRequired": "Selection required",
+    "minSelections": "Min selections",
+    "maxSelections": "Max selections",
+    "options": "Options / Choices",
+    "addOption": "Add Option",
+    "optionName": "Option Name (e.g. Medium Rare, Extra Bacon, No Onions)",
+    "optionPrice": "Added Price ($)",
+    "cancel": "Cancel",
+    "save": "Save Product",
+    "saving": "Saving…"
+  },
+  "categoryForm": {
+    "title": "New Category",
+    "name": "Category Name (e.g. Smash Burgers, Sides, Beverages)",
+    "description": "Description (optional)",
+    "save": "Create Category"
+  },
+  "previewModal": {
+    "title": "Live Menu Preview",
+    "subtitle": "Rendered exactly as seen on American digital ordering displays.",
+    "required": "Required",
+    "optional": "Optional",
+    "selectUpTo": "Choose up to {{max}}",
+    "close": "Close Preview"
+  }
+}

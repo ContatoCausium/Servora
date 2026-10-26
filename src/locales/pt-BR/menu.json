@@ -1,0 +1,70 @@
+{
+  "title": "Cardápio e Produtos",
+  "subtitle": "Gerencie catálogo, categorias, preços, adicionais e disponibilidade por unidade.",
+  "categories": "Categorias",
+  "products": "Produtos",
+  "searchPlaceholder": "Buscar itens, categorias, ingredientes…",
+  "allCategories": "Todas as categorias",
+  "newProduct": "Novo Produto",
+  "newCategory": "Nova Categoria",
+  "preview": "Visualizar Cardápio",
+  "empty": {
+    "title": "Nenhum produto encontrado",
+    "body": "Cadastre seu primeiro produto ou altere os filtros de busca.",
+    "action": "Adicionar Produto"
+  },
+  "item": {
+    "available": "Disponível",
+    "unavailable": "Indisponível",
+    "prepTime": "{{min}} min",
+    "stores": "{{count}} lojas",
+    "allStores": "Todas as lojas",
+    "duplicate": "Duplicar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "price": "Preço",
+    "modifiers": "Modificadores: {{count}}"
+  },
+  "form": {
+    "titleNew": "Criar Produto",
+    "titleEdit": "Editar Produto",
+    "name": "Nome do Item",
+    "description": "Descrição",
+    "category": "Categoria",
+    "selectCategory": "Selecione a categoria…",
+    "price": "Preço (USD)",
+    "prepTime": "Tempo Estimado de Preparo (minutos)",
+    "imageUrl": "URL da Imagem",
+    "notes": "Observações Internas para a Cozinha",
+    "active": "Item ativo e disponível para venda",
+    "locations": "Disponibilidade por Unidade",
+    "allLocationsHint": "Disponível em todas as lojas por padrão",
+    "modifierGroups": "Grupos de Adicionais e Modificadores",
+    "addGroup": "Adicionar Grupo",
+    "groupName": "Nome do Grupo (ex.: Ponto da Carne, Tamanho, Extras, Remover)",
+    "groupRequired": "Seleção obrigatória",
+    "minSelections": "Mínimo de escolhas",
+    "maxSelections": "Máximo de escolhas",
+    "options": "Opções / Ingredientes",
+    "addOption": "Adicionar Opção",
+    "optionName": "Opção (ex.: Ao Ponto, Bacon Extra, Sem Cebola)",
+    "optionPrice": "Preço Adicional ($)",
+    "cancel": "Cancelar",
+    "save": "Salvar Produto",
+    "saving": "Salvando…"
+  },
+  "categoryForm": {
+    "title": "Nova Categoria",
+    "name": "Nome da Categoria (ex.: Smash Burgers, Acompanhamentos, Bebidas)",
+    "description": "Descrição (opcional)",
+    "save": "Criar Categoria"
+  },
+  "previewModal": {
+    "title": "Prévia do Cardápio",
+    "subtitle": "Renderização no padrão de pedidos digitais nos EUA.",
+    "required": "Obrigatório",
+    "optional": "Opcional",
+    "selectUpTo": "Escolha até {{max}}",
+    "close": "Fechar Prévia"
+  }
+}
