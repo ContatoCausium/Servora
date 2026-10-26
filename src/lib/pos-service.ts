@@ -1,9 +1,31 @@
 import { MenuItem } from "./menu-service";
 import { Order, OrderItem, OrderType, SelectedModifier, calculateOrderSummary, saveOrder } from "./orders-service";
 
-export type PaymentMethod = "cash" | "card_simulated" | "digital_wallet_simulated";
+export type POSPaymentMethod = "cash" | "card" | "digital";
+export type PaymentMethod = POSPaymentMethod;
 
-export interface PosCartItem extends OrderItem {}
+export interface POSCartItem extends OrderItem {}
+export type PosCartItem = POSCartItem;
+
+export interface POSSession {
+  id: string;
+  orgId: string;
+  locationId: string;
+  cashierName: string;
+  customerName?: string;
+  orderType: OrderType;
+  cart: POSCartItem[];
+  discountCents: number;
+  taxRatePercent: number;
+  subtotalCents: number;
+  taxCents: number;
+  totalCents: number;
+  paymentMethod?: POSPaymentMethod;
+  tenderedCents?: number;
+  changeDueCents?: number;
+  suspendedSessions: SuspendedSale[];
+  completedAt?: string;
+}
 
 export interface SuspendedSale {
   id: string;
@@ -14,7 +36,7 @@ export interface SuspendedSale {
   orderType: OrderType;
   attendantName: string;
   customerName?: string;
-  items: PosCartItem[];
+  items: POSCartItem[];
   discountCents: number;
   taxRatePercent: number;
 }
@@ -27,12 +49,12 @@ export interface CompletedPosSale {
   attendantName: string;
   orderType: OrderType;
   customerName?: string;
-  items: PosCartItem[];
+  items: POSCartItem[];
   subtotalCents: number;
   discountCents: number;
   taxCents: number;
   totalCents: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod: POSPaymentMethod;
   tenderedCents: number;
   changeCents: number;
   createdAt: string;
@@ -65,7 +87,7 @@ export function listSuspendedSales(orgId: string, locationId?: string): Suspende
 
 export function suspendSale(orgId: string, sale: SuspendedSale): SuspendedSale[] {
   const existing = listSuspendedSales(orgId);
-  const updated = [sale, ...existing];
+  const updated = [sale, ...existing.filter((s) => s.id !== sale.id)];
   if (typeof window !== "undefined") {
     localStorage.setItem(`${SUSPENDED_STORAGE_PREFIX}${orgId}`, JSON.stringify(updated));
   }
@@ -149,7 +171,7 @@ export function buildCartItem(
   quantity: number,
   modifiers: SelectedModifier[],
   notes?: string
-): PosCartItem {
+): POSCartItem {
   const modSum = modifiers.reduce((acc, m) => acc + m.priceCents, 0);
   const itemTotal = (product.priceCents + modSum) * Math.max(1, quantity);
   return {
@@ -161,5 +183,171 @@ export function buildCartItem(
     modifiers,
     subtotalCents: itemTotal,
     notes,
+  };
+}
+
+function recalculateSession(session: POSSession): POSSession {
+  const summary = calculateOrderSummary(session.cart, session.taxRatePercent, session.discountCents);
+  return {
+    ...session,
+    subtotalCents: summary.subtotalCents,
+    taxCents: summary.taxCents,
+    totalCents: summary.totalCents,
+  };
+}
+
+export function getPOSSession(orgId: string, locationId: string, cashierName: string): POSSession {
+  const suspended = listSuspendedSales(orgId, locationId);
+  return recalculateSession({
+    id: `pos-${Date.now()}`,
+    orgId,
+    locationId,
+    cashierName,
+    orderType: "dine_in",
+    cart: [],
+    discountCents: 0,
+    taxRatePercent: 8.875,
+    subtotalCents: 0,
+    taxCents: 0,
+    totalCents: 0,
+    suspendedSessions: suspended,
+  });
+}
+
+export function savePOSSession(session: POSSession): POSSession {
+  return recalculateSession(session);
+}
+
+export function addItemToCart(
+  session: POSSession,
+  product: MenuItem,
+  modifiers: SelectedModifier[] = [],
+  quantity: number = 1,
+  notes?: string
+): POSSession {
+  const item = buildCartItem(product, quantity, modifiers, notes);
+  return recalculateSession({
+    ...session,
+    cart: [...session.cart, item],
+  });
+}
+
+export function updateCartItemQuantity(session: POSSession, cartItemId: string, quantity: number): POSSession {
+  const nextCart = session.cart.map((item) => {
+    if (item.id !== cartItemId) return item;
+    const modSum = item.modifiers.reduce((acc, m) => acc + m.priceCents, 0);
+    return {
+      ...item,
+      quantity,
+      subtotalCents: (item.basePriceCents + modSum) * Math.max(1, quantity),
+    };
+  });
+  return recalculateSession({
+    ...session,
+    cart: nextCart,
+  });
+}
+
+export function removeItemFromCart(session: POSSession, cartItemId: string): POSSession {
+  return recalculateSession({
+    ...session,
+    cart: session.cart.filter((item) => item.id !== cartItemId),
+  });
+}
+
+export function applyDiscount(session: POSSession, discountCents: number): POSSession {
+  return recalculateSession({
+    ...session,
+    discountCents: Math.max(0, discountCents),
+  });
+}
+
+export function setOrderType(session: POSSession, orderType: OrderType): POSSession {
+  return { ...session, orderType };
+}
+
+export function setCustomerInfo(session: POSSession, customerName: string): POSSession {
+  return { ...session, customerName };
+}
+
+export function suspendSession(session: POSSession): void {
+  if (session.cart.length === 0) return;
+  const sale: SuspendedSale = {
+    id: session.id,
+    orgId: session.orgId,
+    locationId: session.locationId,
+    attendantName: session.cashierName,
+    customerName: session.customerName,
+    orderType: session.orderType,
+    items: session.cart,
+    discountCents: session.discountCents,
+    taxRatePercent: session.taxRatePercent,
+    suspendedAt: new Date().toISOString(),
+  };
+  suspendSale(session.orgId, sale);
+}
+
+export function resumeSession(orgId: string, saleId: string): POSSession | null {
+  const sales = listSuspendedSales(orgId);
+  const found = sales.find((s) => s.id === saleId);
+  if (!found) return null;
+  removeSuspendedSale(orgId, saleId);
+  const activeSuspended = listSuspendedSales(orgId, found.locationId);
+  return recalculateSession({
+    id: found.id,
+    orgId,
+    locationId: found.locationId,
+    cashierName: found.attendantName,
+    customerName: found.customerName,
+    orderType: found.orderType,
+    cart: found.items,
+    discountCents: found.discountCents,
+    taxRatePercent: found.taxRatePercent,
+    subtotalCents: 0,
+    taxCents: 0,
+    totalCents: 0,
+    suspendedSessions: activeSuspended,
+  });
+}
+
+export function simulatePayment(
+  session: POSSession,
+  method: POSPaymentMethod,
+  tenderedCents: number
+): POSSession {
+  const changeDueCents = method === "cash" ? calculateChange(tenderedCents, session.totalCents) : 0;
+  return {
+    ...session,
+    paymentMethod: method,
+    tenderedCents,
+    changeDueCents,
+  };
+}
+
+export function finalizeSale(session: POSSession): POSSession {
+  const completed: CompletedPosSale = {
+    id: session.id,
+    orderNumber: `#POS-${session.id.slice(-4).toUpperCase()}`,
+    orgId: session.orgId,
+    locationId: session.locationId,
+    attendantName: session.cashierName,
+    orderType: session.orderType,
+    customerName: session.customerName,
+    items: session.cart,
+    subtotalCents: session.subtotalCents,
+    discountCents: session.discountCents,
+    taxCents: session.taxCents,
+    totalCents: session.totalCents,
+    paymentMethod: session.paymentMethod || "cash",
+    tenderedCents: session.tenderedCents || session.totalCents,
+    changeCents: session.changeDueCents || 0,
+    createdAt: new Date().toISOString(),
+    isSimulated: true,
+  };
+
+  recordCompletedSale(session.orgId, completed);
+  return {
+    ...session,
+    completedAt: completed.createdAt,
   };
 }

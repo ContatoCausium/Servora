@@ -1,119 +1,111 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import {
-  calculatePOSSummary,
+  calculateChange,
+  getPOSSession,
   addItemToCart,
   updateCartItemQuantity,
   removeItemFromCart,
   applyDiscount,
+  suspendSession,
+  resumeSession,
   simulatePayment,
+  finalizeSale,
+  listSuspendedSales,
+  listPosHistory,
   type POSSession,
 } from "../lib/pos-service";
-import type { MenuItem } from "../lib/menu-service";
+import { MenuItem } from "../lib/menu-service";
 
-describe("POS Service calculations & workflow", () => {
-  const sampleItem: MenuItem = {
-    id: "item-1",
-    orgId: "org-marao",
-    name: "Smash Cheeseburger",
-    description: "Double beef patty with melted cheddar",
-    category: "Burgers",
-    priceCents: 1200,
-    taxPercent: 8.875,
-    available: true,
-  };
+const mockItem: MenuItem = {
+  id: "test-item-1",
+  orgId: "org-test",
+  name: "Smash Cheeseburger",
+  description: "Classic beef burger",
+  category: "burgers",
+  priceCents: 1200,
+  prepTimeMinutes: 8,
+  active: true,
+  locationIds: [],
+  createdAt: new Date().toISOString(),
+};
 
-  const initialSession: POSSession = {
-    id: "pos-session-1",
-    orgId: "org-marao",
-    locationId: "loc-1",
-    cashierName: "John Doe",
-    orderType: "dine_in",
-    cart: [],
-    subtotalCents: 0,
-    discountCents: 0,
-    taxRatePercent: 8.875,
-    taxCents: 0,
-    totalCents: 0,
-    status: "active",
-    suspendedSessions: [],
-  };
-
-  it("calculates subtotal, tax and grand total correctly", () => {
-    const summary = calculatePOSSummary(
-      [
-        {
-          id: "ci-1",
-          productId: "item-1",
-          productName: "Smash Cheeseburger",
-          quantity: 2,
-          basePriceCents: 1200,
-          modifiers: [],
-          subtotalCents: 2400,
-        },
-      ],
-      8.875,
-      0
-    );
-
-    expect(summary.subtotalCents).toBe(2400);
-    // 2400 * 0.08875 = 213
-    expect(summary.taxCents).toBe(213);
-    expect(summary.totalCents).toBe(2613);
+describe("POS Service calculations and lifecycle", () => {
+  beforeEach(() => {
+    localStorage.clear();
   });
 
-  it("applies discounts before calculating tax", () => {
-    const summary = calculatePOSSummary(
-      [
-        {
-          id: "ci-1",
-          productId: "item-1",
-          productName: "Smash Cheeseburger",
-          quantity: 2,
-          basePriceCents: 1200,
-          modifiers: [],
-          subtotalCents: 2400,
-        },
-      ],
-      8.875,
-      400 // $4.00 discount
-    );
-
-    expect(summary.subtotalCents).toBe(2400);
-    // taxable = 2400 - 400 = 2000; tax = 2000 * 0.08875 = 177.5 => 178
-    expect(summary.taxCents).toBe(178);
-    expect(summary.totalCents).toBe(2178);
+  it("calculates change correctly for cash transactions", () => {
+    expect(calculateChange(2000, 1500)).toBe(500);
+    expect(calculateChange(1000, 1500)).toBe(0);
+    expect(calculateChange(1500, 1500)).toBe(0);
   });
 
-  it("adds item to cart with modifiers accurately", () => {
-    const sessionWithItem = addItemToCart(
-      initialSession,
-      sampleItem,
-      [
-        {
-          groupId: "mg-1",
-          groupName: "Extras",
-          optionId: "opt-bacon",
-          optionName: "Bacon",
-          priceCents: 200,
-        },
-      ],
-      1
-    );
+  it("adds items to cart and computes tax and total accurately", () => {
+    let session = getPOSSession("org-test", "loc-1", "Attendant Bob");
+    expect(session.cart.length).toBe(0);
+    expect(session.totalCents).toBe(0);
 
-    expect(sessionWithItem.cart.length).toBe(1);
-    expect(sessionWithItem.cart[0]?.subtotalCents).toBe(1400); // 1200 + 200
-    expect(sessionWithItem.subtotalCents).toBe(1400);
+    session = addItemToCart(session, mockItem, [], 2);
+    expect(session.cart.length).toBe(1);
+    expect(session.subtotalCents).toBe(2400);
+    // 8.875% of 2400 cents = 213 cents
+    expect(session.taxCents).toBe(213);
+    expect(session.totalCents).toBe(2613);
   });
 
-  it("calculates cash change due accurately", () => {
-    const session: POSSession = {
-      ...initialSession,
-      subtotalCents: 2000,
-      taxCents: 178,
-      totalCents: 2178,
-    };
+  it("updates item quantities and removes items when needed", () => {
+    let session = getPOSSession("org-test", "loc-1", "Bob");
+    session = addItemToCart(session, mockItem, [], 1);
+    const itemId = session.cart[0]!.id;
 
-    const paid = simulatePayment(session, "cash", 2500);
-    expect(paid.changeDueCents).toBe(322); // 2500 - 2178 = 322 cents ($3.22)
+    session = updateCartItemQuantity(session, itemId, 3);
+    expect(session.subtotalCents).toBe(3600);
+
+    session = removeItemFromCart(session, itemId);
+    expect(session.cart.length).toBe(0);
+    expect(session.totalCents).toBe(0);
+  });
+
+  it("applies authorized discounts correctly against taxable subtotal", () => {
+    let session = getPOSSession("org-test", "loc-1", "Bob");
+    session = addItemToCart(session, mockItem, [], 1);
+    expect(session.subtotalCents).toBe(1200);
+
+    session = applyDiscount(session, 200);
+    // Taxable base = 1000, 8.875% of 1000 = 89
+    expect(session.discountCents).toBe(200);
+    expect(session.taxCents).toBe(89);
+    expect(session.totalCents).toBe(1089);
+  });
+
+  it("suspends and resumes sales maintaining ticket state", () => {
+    let session = getPOSSession("org-test", "loc-1", "Bob");
+    session = addItemToCart(session, mockItem, [], 2);
+    suspendSession(session);
+
+    const suspended = listSuspendedSales("org-test", "loc-1");
+    expect(suspended.length).toBe(1);
+    expect(suspended[0]!.items.length).toBe(1);
+
+    const resumed = resumeSession("org-test", session.id);
+    expect(resumed).not.toBeNull();
+    expect(resumed!.cart.length).toBe(1);
+    expect(resumed!.subtotalCents).toBe(2400);
+
+    expect(listSuspendedSales("org-test", "loc-1").length).toBe(0);
+  });
+
+  it("simulates payment and registers a completed simulated order in history", () => {
+    let session = getPOSSession("org-test", "loc-1", "Bob");
+    session = addItemToCart(session, mockItem, [], 1);
+    const paid = simulatePayment(session, "cash", 2000);
+    expect(paid.changeDueCents).toBe(calculateChange(2000, paid.totalCents));
+
+    const finalized = finalizeSale(paid);
+    expect(finalized.completedAt).toBeDefined();
+
+    const history = listPosHistory("org-test", "loc-1");
+    expect(history.length).toBe(1);
+    expect(history[0]!.isSimulated).toBe(true);
   });
 });
