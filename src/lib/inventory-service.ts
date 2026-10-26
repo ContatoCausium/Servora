@@ -150,8 +150,10 @@ function writeStore(items: InventoryItem[]): void {
 export function listInventory(orgId: string, locationId?: string): InventoryItem[] {
   const all = readStore();
   return all.filter((item) => {
-    const matchOrg = item.orgId === orgId || item.orgId === 'demo';
-    const matchLoc = !locationId || locationId === 'all' || item.locationId === locationId || item.locationId === 'loc-1';
+    // Tenant isolation: strict org match. Demo org allows fallback demo items
+    const matchOrg = item.orgId === orgId || (orgId === 'demo' && item.orgId === 'demo');
+    // Multi-unit location filter: all authorized or explicit store
+    const matchLoc = !locationId || locationId === 'all' || item.locationId === locationId;
     return matchOrg && matchLoc;
   });
 }
