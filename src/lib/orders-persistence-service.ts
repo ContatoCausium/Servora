@@ -191,7 +191,10 @@ export async function persistOrderToSupabase(
       return { success: true, orderId: rpcOrderId };
     }
 
-    // Fallback com validacao estrita do esquema orders e client_order_id
+    // Fallback direto via insert quando RPC falhar por permissao ou ambiente local
+    if (rpcErr && rpcErr.message && !rpcErr.message.includes("function public.create_pos_sale") && !rpcErr.message.includes("not found")) {
+      return { success: false, error: rpcErr.message };
+    }
     const isValidUuid = typeof order.id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id);
     const headerPayload: Record<string, any> = {
       org_id: orgId,

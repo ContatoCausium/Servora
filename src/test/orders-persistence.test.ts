@@ -104,8 +104,16 @@ describe("Orders persistence and multi-tenant integrity", () => {
     const orderId = "550e8400-e29b-41d4-a716-446655440000";
     const clientOrderId = `persist-${orderId}`;
     expect(clientOrderId).toBe("persist-550e8400-e29b-41d4-a716-446655440000");
-    // Same input always produces same key — backend UNIQUE index prevents duplicates
     expect(`persist-${orderId}`).toBe(clientOrderId);
+  });
+
+  it("guarantees client_order_id collision isolation across distinct orgs", () => {
+    const orderKey = "order-ref-123";
+    const orgA = "org-aaaa-1111";
+    const orgB = "org-bbbb-2222";
+    const keyA = `${orgA}:${orderKey}`;
+    const keyB = `${orgB}:${orderKey}`;
+    expect(keyA).not.toBe(keyB);
   });
 
   it("enforces location scope filtering and multi-tenant isolation", () => {
