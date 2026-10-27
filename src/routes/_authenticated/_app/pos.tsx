@@ -2,24 +2,23 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Search, Plus, Minus, Trash2, ShoppingBag, PauseCircle, PlayCircle,
+  Search, Plus, Minus, Trash2, ShoppingBag, PlayCircle,
   DollarSign, CreditCard, Smartphone, Receipt, XCircle, Tag, Printer
 } from "lucide-react";
 
 import { useWorkspace } from "@/components/app/workspace-context";
 import { listMenuItems, type MenuItem, type ModifierOption } from "@/lib/menu-service";
 import {
-  getPOSSession, savePOSSession, addItemToCart, updateCartItemQuantity,
+  getPOSSession, addItemToCart, updateCartItemQuantity,
   removeItemFromCart, applyDiscount, setOrderType, setCustomerInfo,
   suspendSession, resumeSession, finalizeSale, simulatePayment,
-  type POSCartItem, type POSPaymentMethod
+  type POSPaymentMethod
 } from "@/lib/pos-service";
 import { type OrderType } from "@/lib/orders-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/_app/pos")({
@@ -30,7 +29,7 @@ function formatMoney(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
-function POSPage() {
+export function POSPage() {
   const { t } = useTranslation("orders");
   const { org, locationId, user } = useWorkspace();
   const activeLocId = locationId === "all" ? (org.locations[0]?.id || "loc-1") : locationId;
@@ -49,7 +48,6 @@ function POSPage() {
   const [tenderedInput, setTenderedInput] = useState("");
   const [receiptSession, setReceiptSession] = useState<typeof session | null>(null);
 
-  // Refresh session when active location changes
   useEffect(() => {
     setSession(getPOSSession(org.id, activeLocId, cashierName));
   }, [org.id, activeLocId, cashierName]);
@@ -83,7 +81,6 @@ function POSPage() {
 
   const handleConfirmModifiers = () => {
     if (!modModalItem) return;
-    // Verify required modifier groups
     const missingRequired = modModalItem.modifierGroups?.filter(
       (g) => g.required && (!selectedMods[g.id] || selectedMods[g.id]!.length === 0)
     );
@@ -166,6 +163,10 @@ function POSPage() {
     setSession(getPOSSession(org.id, activeLocId, cashierName));
     toast.success("Sale completed successfully!");
   };
+
+  const changeDueCents = receiptSession
+    ? Math.max(0, (receiptSession.payment?.tenderedCents ?? receiptSession.totalCents) - receiptSession.totalCents)
+    : 0;
 
   return (
     <div className="flex h-[calc(100vh-5rem)] flex-col gap-4 overflow-hidden lg:flex-row">
@@ -261,159 +262,168 @@ function POSPage() {
               </Button>
             ))}
           </div>
-          <Input
-            placeholder="Customer (e.g. Table 5 / Alex)"
-            value={session.customerName || ""}
-            onChange={(e) => setSession(setCustomerInfo(session, e.target.value))}
-            className="h-8 text-xs"
-          />
+          <div className="flex gap-2">
+            <Input
+              placeholder="Customer name / table..."
+              value={session.customerName}
+              onChange={(e) => setSession(setCustomerInfo(session, e.target.value))}
+              className="h-7 text-xs"
+            />
+          </div>
         </div>
 
-        {/* Cart Items List */}
-        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 divide-y">
-          {session.cart.map((cartItem) => (
-            <div key={cartItem.id} className="pt-2 first:pt-0 flex flex-col gap-1">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-sm font-medium leading-tight">{cartItem.productName}</p>
-                  {cartItem.modifiers.length > 0 && (
-                    <p className="text-[11px] text-muted-foreground">
-                      {cartItem.modifiers.map((m) => m.optionName).join(", ")}
-                    </p>
-                  )}
-                  {cartItem.notes && (
-                    <p className="text-[11px] italic text-muted-foreground">Note: {cartItem.notes}</p>
-                  )}
-                </div>
-                <span className="text-sm font-semibold">{formatMoney(cartItem.subtotalCents)}</span>
+        {/* Cart Item List */}
+        <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2 divide-y divide-border/40">
+          {session.cart.map((item) => (
+            <div key={item.id} className="pt-2 first:pt-0 flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-xs truncate leading-snug">{item.productName}</p>
+                {item.modifiers.length > 0 && (
+                  <p className="text-[10px] text-muted-foreground">
+                    {item.modifiers.map((m) => m.optionName).join(", ")}
+                  </p>
+                )}
+                {item.notes && (
+                  <p className="text-[10px] italic text-amber-600 dark:text-amber-400">{item.notes}</p>
+                )}
+                <p className="text-xs font-semibold mt-0.5">{formatMoney(item.totalCents)}</p>
               </div>
-              <div className="flex items-center justify-between mt-1">
-                <div className="flex items-center gap-1">
-                  <Button size="icon" variant="outline" className="size-6" onClick={() => handleQuantity(cartItem.id, -1)}>
-                    <Minus className="size-3" />
-                  </Button>
-                  <span className="w-6 text-center text-xs font-semibold">{cartItem.quantity}</span>
-                  <Button size="icon" variant="outline" className="size-6" onClick={() => handleQuantity(cartItem.id, 1)}>
-                    <Plus className="size-3" />
-                  </Button>
-                </div>
-                <Button size="icon" variant="ghost" className="size-6 text-destructive hover:bg-destructive/10" onClick={() => setSession(removeItemFromCart(session, cartItem.id))}>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button size="icon" variant="outline" className="size-6" onClick={() => handleQuantity(item.id, -1)}>
+                  <Minus className="size-3" />
+                </Button>
+                <span className="w-5 text-center text-xs font-medium">{item.quantity}</span>
+                <Button size="icon" variant="outline" className="size-6" onClick={() => handleQuantity(item.id, 1)}>
+                  <Plus className="size-3" />
+                </Button>
+                <Button size="icon" variant="ghost" className="size-6 text-destructive" onClick={() => setSession(removeItemFromCart(session, item.id))}>
                   <Trash2 className="size-3" />
                 </Button>
               </div>
             </div>
           ))}
           {session.cart.length === 0 && (
-            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center text-muted-foreground text-xs">
-              Tap items from the left catalogue to add them to this ticket.
+            <div className="flex flex-col items-center justify-center p-8 text-center text-xs text-muted-foreground my-auto">
+              <ShoppingBag className="size-8 mb-2 opacity-30" />
+              <p>Cart is currently empty</p>
             </div>
           )}
         </div>
 
-        {/* Totals & Quick Actions */}
-        <div className="border-t p-3 bg-muted/10 flex flex-col gap-2 text-xs">
-          <div className="flex justify-between text-muted-foreground">
-            <span>Subtotal:</span>
-            <span>{formatMoney(session.subtotalCents)}</span>
-          </div>
-          <div className="flex justify-between text-muted-foreground">
-            <span>Tax ({session.taxRatePercent}%):</span>
-            <span>{formatMoney(session.taxCents)}</span>
-          </div>
-          {session.discountCents > 0 && (
-            <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-medium">
-              <span>Authorized Discount:</span>
-              <span>-{formatMoney(session.discountCents)}</span>
+        {/* Totals & Actions Footer */}
+        <div className="border-t p-3 bg-muted/10 flex flex-col gap-2.5">
+          <div className="flex flex-col gap-1 text-xs">
+            <div className="flex justify-between text-muted-foreground">
+              <span>Subtotal</span>
+              <span>{formatMoney(session.subtotalCents)}</span>
             </div>
-          )}
-          <div className="flex justify-between font-bold text-sm pt-1 border-t text-foreground">
-            <span>Total USD:</span>
-            <span>{formatMoney(session.totalCents)}</span>
+            {session.discountCents > 0 && (
+              <div className="flex justify-between text-emerald-600 font-medium">
+                <span>Discount</span>
+                <span>-{formatMoney(session.discountCents)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-muted-foreground">
+              <span>Tax (8%)</span>
+              <span>{formatMoney(session.taxCents)}</span>
+            </div>
+            <div className="flex justify-between text-base font-bold border-t pt-1.5 mt-0.5 text-foreground">
+              <span>Total</span>
+              <span>{formatMoney(session.totalCents)}</span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 mt-2">
-            <Button size="sm" variant="outline" onClick={() => { setDiscountInput((session.discountCents / 100).toFixed(2)); setDiscountModalOpen(true); }} className="h-8 text-[11px] px-1">
-              <Tag className="size-3 mr-1" /> {t("pos.discount")}
+          <div className="grid grid-cols-2 gap-1.5">
+            <Button size="sm" variant="outline" onClick={() => setDiscountModalOpen(true)} className="h-8 text-xs">
+              <Tag className="size-3 mr-1" /> Discount
             </Button>
-            <Button size="sm" variant="outline" onClick={handleSuspend} disabled={session.cart.length === 0} className="h-8 text-[11px] px-1">
-              <PauseCircle className="size-3 mr-1" /> {t("pos.suspend")}
-            </Button>
-            <Button size="sm" variant="destructive" onClick={handleClearTicket} disabled={session.cart.length === 0} className="h-8 text-[11px] px-1">
-              <XCircle className="size-3 mr-1" /> {t("pos.clearTicket")}
+            <Button size="sm" variant="outline" onClick={handleSuspend} disabled={session.cart.length === 0} className="h-8 text-xs">
+              <PlayCircle className="size-3 mr-1" /> Hold
             </Button>
           </div>
-          <Button size="sm" variant="default" onClick={handleStartCheckout} disabled={session.cart.length === 0} className="w-full h-9 text-xs font-semibold mt-1">
-            {t("pos.pay", { amount: formatMoney(session.totalCents) })}
-          </Button>
+
+          <div className="grid grid-cols-3 gap-1.5">
+            <Button size="sm" variant="ghost" onClick={handleClearTicket} disabled={session.cart.length === 0} className="h-9 text-xs text-destructive hover:bg-destructive/10">
+              <XCircle className="size-3.5 mr-1" /> Clear
+            </Button>
+            <Button size="sm" className="col-span-2 h-9 text-xs font-semibold" onClick={handleStartCheckout} disabled={session.cart.length === 0}>
+              <CreditCard className="size-4 mr-1.5" /> Charge {formatMoney(session.totalCents)}
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Modifiers Dialog */}
-      <Dialog open={!!modModalItem} onOpenChange={(open) => !open && setModModalItem(null)}>
-        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+      {/* Checkout Dialog */}
+      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>{modModalItem?.name}</DialogTitle>
+            <DialogTitle>Complete Checkout ({formatMoney(session.totalCents)})</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 py-2">
-            {modModalItem?.modifierGroups?.map((group) => (
-              <div key={group.id} className="flex flex-col gap-2 border-b pb-3">
-                <p className="font-medium text-sm flex items-center justify-between">
-                  <span>{group.name}</span>
-                  {group.required && <Badge variant="secondary" className="text-[10px]">Required</Badge>}
-                </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {group.options.map((opt) => {
-                    const currentSelected = selectedMods[group.id] || [];
-                    const isSelected = currentSelected.some((o) => o.id === opt.id);
-                    return (
-                      <Button
-                        key={opt.id}
-                        type="button"
-                        size="sm"
-                        variant={isSelected ? "default" : "outline"}
-                        onClick={() => {
-                          setSelectedMods((prev) => ({
-                            ...prev,
-                            [group.id]: [opt],
-                          }));
-                        }}
-                        className="h-9 text-xs justify-between px-2"
-                      >
-                        <span className="truncate">{opt.name}</span>
-                        {opt.priceCents > 0 && <span className="text-[10px] opacity-75">+{formatMoney(opt.priceCents)}</span>}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-muted-foreground">Item Notes</label>
-              <Input placeholder="e.g. Extra dressing on side" value={itemNotes} onChange={(e) => setItemNotes(e.target.value)} />
+            <div className="grid grid-cols-3 gap-2">
+              <Button
+                variant={payMethod === "cash" ? "default" : "outline"}
+                onClick={() => setPayMethod("cash")}
+                className="h-16 flex-col gap-1"
+              >
+                <DollarSign className="size-5" />
+                <span className="text-xs">Cash</span>
+              </Button>
+              <Button
+                variant={payMethod === "card" ? "default" : "outline"}
+                onClick={() => setPayMethod("card")}
+                className="h-16 flex-col gap-1"
+              >
+                <CreditCard className="size-5" />
+                <span className="text-xs">Credit / Debit</span>
+              </Button>
+              <Button
+                variant={payMethod === "digital_wallet" ? "default" : "outline"}
+                onClick={() => setPayMethod("digital_wallet")}
+                className="h-16 flex-col gap-1"
+              >
+                <Smartphone className="size-5" />
+                <span className="text-xs">Digital Wallet</span>
+              </Button>
             </div>
+
+            {payMethod === "cash" && (
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Amount Tendered ($)</label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={tenderedInput}
+                  onChange={(e) => setTenderedInput(e.target.value)}
+                />
+                {parseFloat(tenderedInput) * 100 > session.totalCents && (
+                  <p className="text-xs text-emerald-600 font-semibold">
+                    Change to return: {formatMoney(Math.round(parseFloat(tenderedInput) * 100) - session.totalCents)}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setModModalItem(null)}>Cancel</Button>
-            <Button onClick={handleConfirmModifiers}>Add to Ticket</Button>
+            <Button variant="outline" onClick={() => setCheckoutOpen(false)}>Cancel</Button>
+            <Button onClick={handleCompleteSale}>Confirm Payment</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Discount Dialog */}
+      {/* Discount Modal */}
       <Dialog open={discountModalOpen} onOpenChange={setDiscountModalOpen}>
-        <DialogContent className="max-w-xs">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>{t("pos.applyDiscount")}</DialogTitle>
+            <DialogTitle>Apply Order Discount</DialogTitle>
           </DialogHeader>
-          <div className="flex flex-col gap-3 py-2">
-            <label className="text-xs font-medium text-muted-foreground">Discount (USD)</label>
+          <div className="flex flex-col gap-2 py-2">
+            <label className="text-xs font-medium text-muted-foreground">Discount Amount ($)</label>
             <Input
               type="number"
-              step="0.50"
-              min="0"
+              placeholder="0.00"
               value={discountInput}
               onChange={(e) => setDiscountInput(e.target.value)}
-              autoFocus
             />
           </div>
           <DialogFooter>
@@ -423,138 +433,46 @@ function POSPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Checkout Modal */}
-      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>{t("pos.checkoutTitle")}</DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-4 py-2">
-            <div className="p-3 bg-muted/40 rounded-lg text-center">
-              <span className="text-xs text-muted-foreground uppercase tracking-wider">{t("pos.amountDue")}</span>
-              <p className="text-3xl font-bold mt-1 text-primary">{formatMoney(session.totalCents)}</p>
-            </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <Button
-                type="button"
-                variant={payMethod === "cash" ? "default" : "outline"}
-                onClick={() => setPayMethod("cash")}
-                className="flex-col h-14 text-xs gap-1"
-              >
-                <DollarSign className="size-4" /> {t("pos.methods.cash")}
-              </Button>
-              <Button
-                type="button"
-                variant={payMethod === "card" ? "default" : "outline"}
-                onClick={() => setPayMethod("card")}
-                className="flex-col h-14 text-xs gap-1"
-              >
-                <CreditCard className="size-4" /> {t("pos.methods.card")}
-              </Button>
-              <Button
-                type="button"
-                variant={payMethod === "digital" ? "default" : "outline"}
-                onClick={() => setPayMethod("digital")}
-                className="flex-col h-14 text-xs gap-1"
-              >
-                <Smartphone className="size-4" /> {t("pos.methods.digital")}
-              </Button>
-            </div>
-
-            {payMethod === "cash" && (
-              <div className="flex flex-col gap-2.5">
-                <label className="text-xs font-medium">{t("pos.tendered")}</label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={tenderedInput}
-                  onChange={(e) => setTenderedInput(e.target.value)}
-                />
-                <div className="flex gap-1.5">
-                  {[10, 20, 50, 100].map((preset) => (
-                    <Button
-                      key={preset}
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="h-7 text-xs flex-1"
-                      onClick={() => setTenderedInput(String(preset))}
-                    >
-                      ${preset}
-                    </Button>
-                  ))}
-                </div>
-                {parseFloat(tenderedInput) * 100 > session.totalCents && (
-                  <p className="text-xs text-emerald-600 font-medium pt-1">
-                    {t("pos.changeDue")}: {formatMoney(Math.round(parseFloat(tenderedInput) * 100) - session.totalCents)}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCheckoutOpen(false)}>Cancel</Button>
-            <Button onClick={handleCompleteSale} className="bg-primary text-primary-foreground">
-              {t("pos.confirmSale")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Receipt Modal */}
       <Dialog open={!!receiptSession} onOpenChange={(open) => !open && setReceiptSession(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Receipt className="size-5 text-emerald-600" /> {t("pos.receiptTitle")}
+            <DialogTitle className="flex items-center gap-1.5">
+              <Receipt className="size-4" /> Receipt Preview
             </DialogTitle>
           </DialogHeader>
           {receiptSession && (
-            <div className="flex flex-col gap-3 font-mono text-xs border rounded-md p-4 bg-muted/10 shadow-inner">
-              <div className="text-center border-b pb-2 space-y-0.5">
-                <p className="font-bold text-base">{org.name}</p>
-                <p className="text-[10px] text-muted-foreground">{t("pos.simulatedBadge")}</p>
-                <p className="text-[10px] text-muted-foreground">Ticket #{receiptSession.id.slice(-6).toUpperCase()}</p>
-                <p className="text-[10px] text-muted-foreground">{new Date().toLocaleTimeString()}</p>
+            <div className="flex flex-col gap-2 p-3 border rounded bg-muted/10 font-mono text-xs">
+              <div className="text-center border-b pb-2">
+                <p className="font-bold text-sm">SERVORA RESTAURANT</p>
+                <p className="text-[10px] text-muted-foreground">Simulation Receipt</p>
+                <p className="text-[10px]">Cashier: {receiptSession.cashierName}</p>
               </div>
-              <div className="flex flex-col gap-1 border-b pb-2">
-                {receiptSession.cart.map((itm) => (
-                  <div key={itm.id} className="flex justify-between items-start">
-                    <div>
-                      <span>{itm.quantity}x {itm.productName}</span>
-                      {itm.modifiers.length > 0 && (
-                        <span className="block text-[10px] text-muted-foreground">+ {itm.modifiers.map(m => m.optionName).join(", ")}</span>
-                      )}
-                    </div>
-                    <span>{formatMoney(itm.subtotalCents)}</span>
+              <div className="flex flex-col gap-1 py-1 border-b">
+                {receiptSession.cart.map((c) => (
+                  <div key={c.id} className="flex justify-between">
+                    <span>{c.quantity}x {c.productName}</span>
+                    <span>{formatMoney(c.totalCents)}</span>
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col gap-1 text-right">
+              <div className="flex flex-col gap-0.5 pt-1">
                 <div className="flex justify-between text-muted-foreground"><span>Subtotal:</span><span>{formatMoney(receiptSession.subtotalCents)}</span></div>
-                {receiptSession.discountCents > 0 && (
-                  <div className="flex justify-between text-emerald-600"><span>Discount:</span><span>-{formatMoney(receiptSession.discountCents)}</span></div>
+                {receiptSession.discountCents > 0 && <div className="flex justify-between text-emerald-600"><span>Discount:</span><span>-{formatMoney(receiptSession.discountCents)}</span></div>}
+                <div className="flex justify-between text-muted-foreground"><span>Tax:</span><span>{formatMoney(receiptSession.taxCents)}</span></div>
+                <div className="flex justify-between font-bold text-sm pt-1 border-t"><span>Total Paid:</span><span>{formatMoney(receiptSession.totalCents)}</span></div>
+                <div className="flex justify-between text-[11px] text-muted-foreground pt-1"><span>Method:</span><span className="uppercase">{receiptSession.payment?.method}</span></div>
+                {receiptSession.payment?.method === "cash" && (
+                  <div className="flex justify-between text-[11px] font-semibold text-emerald-600"><span>Change:</span><span>{formatMoney(changeDueCents)}</span></div>
                 )}
-                <div className="flex justify-between text-muted-foreground"><span>Tax ({receiptSession.taxRatePercent}%):</span><span>{formatMoney(receiptSession.taxCents)}</span></div>
-                <div className="flex justify-between font-bold text-sm pt-1 border-t text-foreground"><span>Total:</span><span>{formatMoney(receiptSession.totalCents)}</span></div>
-                {receiptSession.tenderedCents ? (
-                  <div className="flex justify-between text-muted-foreground pt-1"><span>Tendered ({receiptSession.paymentMethod}):</span><span>{formatMoney(receiptSession.tenderedCents)}</span></div>
-                ) : null}
-                {receiptSession.changeDueCents ? (
-                  <div className="flex justify-between text-emerald-600 font-semibold"><span>Change:</span><span>{formatMoney(receiptSession.changeDueCents)}</span></div>
-                ) : null}
               </div>
-              <p className="text-center text-[10px] text-muted-foreground pt-2 border-t border-dashed">
-                {t("pos.receiptNote")}
-              </p>
             </div>
           )}
-          <DialogFooter className="flex-row gap-2 justify-end">
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1">
-              <Printer className="size-3.5" /> Print
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { window.print(); }}>
+              <Printer className="size-3.5 mr-1" /> Print
             </Button>
-            <Button size="sm" onClick={() => setReceiptSession(null)}>{t("pos.closeNewOrder")}</Button>
+            <Button onClick={() => setReceiptSession(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
