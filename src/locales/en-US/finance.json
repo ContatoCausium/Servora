@@ -1,0 +1,87 @@
+{
+  "title": "Finance & Expenses",
+  "subtitle": "Executive financial control, expense categorisation, USD accounts payable, and estimated restaurant P&L.",
+  "tabs": {
+    "overview": "Executive Dashboard",
+    "expenses": "Expenses Registry",
+    "payables": "Accounts Payable"
+  },
+  "kpis": {
+    "realRevenue": "Real Realized Revenue",
+    "realRevenueSub": "Derived from actual non-simulation orders (USD)",
+    "simulatedRevenue": "Simulated POS Volume",
+    "simulatedRevenueSub": "Segregated sandbox / training figures (excluded from P&L)",
+    "totalExpenses": "Total Scheduled Expenses",
+    "totalExpensesSub": "Fixed + Variable obligations this period",
+    "estimatedNet": "Estimated Net Operating Result",
+    "margin": "Operating Margin: {{value}}%",
+    "pendingPayables": "Pending Payables",
+    "overdueAlert": "{{count}} overdue invoices requiring immediate payment",
+    "paidVolume": "Settled This Cycle"
+  },
+  "categories": {
+    "suppliers": "Suppliers & Broadline Distributors",
+    "taxes": "Taxes & Municipal Fees",
+    "rent": "Real Estate & Lease",
+    "payroll": "Staff Payroll & Benefits",
+    "utilities": "Utilities (Power, Gas, Water)",
+    "ingredients": "Direct Ingredients & Perishables",
+    "maintenance": "Equipment Maintenance & Servicing",
+    "marketing": "Marketing & Promotions",
+    "other": "General & Administrative"
+  },
+  "recurrence": {
+    "fixed": "Fixed Cost",
+    "variable": "Variable Cost",
+    "recurring": "Recurring Cost"
+  },
+  "status": {
+    "paid": "Paid",
+    "pending": "Pending",
+    "overdue": "Overdue"
+  },
+  "filters": {
+    "searchPlaceholder": "Search expenses, vendors or descriptions...",
+    "allCategories": "All Categories",
+    "allRecurrences": "All Frequencies",
+    "allStatuses": "All Statuses",
+    "allStores": "All Locations",
+    "newExpense": "New Expense Entry"
+  },
+  "form": {
+    "newTitle": "Register Restaurant Expense",
+    "editTitle": "Edit Expense Entry",
+    "desc": "Enter invoice details in USD. Receipts can be attached for auditing.",
+    "descriptionLabel": "Description / Purpose",
+    "descriptionPlaceholder": "e.g. Commercial electric utility bill for October",
+    "supplierLabel": "Supplier / Vendor Name",
+    "supplierPlaceholder": "e.g. Sysco Foods or ConEdison",
+    "amountLabel": "Amount (USD $)",
+    "amountPlaceholder": "0.00",
+    "categoryLabel": "Category",
+    "recurrenceLabel": "Type of Expense",
+    "statusLabel": "Liquidation Status",
+    "dueDateLabel": "Due Date",
+    "competencyLabel": "Accounting Competency Month",
+    "responsibleLabel": "Responsible Manager",
+    "locationLabel": "Allocated Location",
+    "attachmentLabel": "Demonstrative Invoice / Proof URL or Base64",
+    "cancel": "Cancel",
+    "save": "Save Expense Entry"
+  },
+  "evolution": {
+    "title": "6-Month Financial Trend (USD)",
+    "subtitle": "Historical monthly revenue vs expenses and computed operating spread.",
+    "revenue": "Revenue",
+    "expenses": "Expenses",
+    "net": "Net Profit"
+  },
+  "receiptModal": {
+    "title": "Demonstrative Expense Receipt",
+    "close": "Close"
+  },
+  "validation": {
+    "requiredFields": "Description, amount, and supplier are required.",
+    "invalidAmount": "Please provide a valid expense amount greater than zero."
+  }
+}

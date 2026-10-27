@@ -1,0 +1,87 @@
+{
+  "title": "Financeiro & Despesas",
+  "subtitle": "Painel executivo, categorização de despesas fixas e variáveis em USD, contas a pagar e DRE operacional estimado.",
+  "tabs": {
+    "overview": "Dashboard Executivo",
+    "expenses": "Controle de Despesas",
+    "payables": "Contas a Pagar"
+  },
+  "kpis": {
+    "realRevenue": "Receita Real Realizada",
+    "realRevenueSub": "Origem em pedidos reais não-simulados (USD)",
+    "simulatedRevenue": "Volume Simulado POS",
+    "simulatedRevenueSub": "Segregado para testes/treinamento (fora do DRE)",
+    "totalExpenses": "Despesas Totais Agendadas",
+    "totalExpensesSub": "Obrigações Fixas + Variáveis no ciclo",
+    "estimatedNet": "Resultado Operacional Estimado",
+    "margin": "Margem Operacional: {{value}}%",
+    "pendingPayables": "Contas a Pagar Pendentes",
+    "overdueAlert": "{{count}} títulos vencidos aguardando quitação",
+    "paidVolume": "Total Liquidado no Período"
+  },
+  "categories": {
+    "suppliers": "Fornecedores & Distribuidores",
+    "taxes": "Impostos & Taxas Fiscais",
+    "rent": "Aluguel & Condomínio Comercial",
+    "payroll": "Folha de Pagamento & Encargos",
+    "utilities": "Energia, Água & Gás",
+    "ingredients": "Insumos & Perecíveis Diretos",
+    "maintenance": "Manutenção & Reparos",
+    "marketing": "Marketing & Publicidade",
+    "other": "Despesas Administrativas"
+  },
+  "recurrence": {
+    "fixed": "Despesa Fixa",
+    "variable": "Despesa Variável",
+    "recurring": "Despesa Recorrente"
+  },
+  "status": {
+    "paid": "Pago",
+    "pending": "Pendente",
+    "overdue": "Vencido"
+  },
+  "filters": {
+    "searchPlaceholder": "Buscar despesa, credor ou descrição...",
+    "allCategories": "Todas as Categorias",
+    "allRecurrences": "Todas as Periodicidades",
+    "allStatuses": "Todos os Status",
+    "allStores": "Todas as Unidades",
+    "newExpense": "Novo Lançamento"
+  },
+  "form": {
+    "newTitle": "Cadastrar Despesa",
+    "editTitle": "Editar Lançamento",
+    "desc": "Preencha os dados em USD. O comprovante demonstrativo fica salvo para conciliação.",
+    "descriptionLabel": "Descrição / Finalidade",
+    "descriptionPlaceholder": "ex: Fatura de energia elétrica de Outubro",
+    "supplierLabel": "Fornecedor / Credor",
+    "supplierPlaceholder": "ex: Sysco Foods ou ConEdison",
+    "amountLabel": "Valor (USD $)",
+    "amountPlaceholder": "0.00",
+    "categoryLabel": "Categoria",
+    "recurrenceLabel": "Tipo de Despesa",
+    "statusLabel": "Status de Pagamento",
+    "dueDateLabel": "Data de Vencimento",
+    "competencyLabel": "Mês de Competência",
+    "responsibleLabel": "Responsável pelo Pagamento",
+    "locationLabel": "Unidade Destino",
+    "attachmentLabel": "Comprovante Demonstrativo (URL ou Base64)",
+    "cancel": "Cancelar",
+    "save": "Salvar Lançamento"
+  },
+  "evolution": {
+    "title": "Evolução Financeira Semestral (USD)",
+    "subtitle": "Comparativo mensal de faturamento vs despesas e resultado líquido apurado.",
+    "revenue": "Receita",
+    "expenses": "Despesas",
+    "net": "Resultado"
+  },
+  "receiptModal": {
+    "title": "Comprovante Demonstrativo",
+    "close": "Fechar"
+  },
+  "validation": {
+    "requiredFields": "Descrição, valor e fornecedor são obrigatórios.",
+    "invalidAmount": "Informe um valor maior que zero em USD."
+  }
+}
