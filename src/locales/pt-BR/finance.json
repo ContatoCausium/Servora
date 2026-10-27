@@ -3,8 +3,19 @@
   "subtitle": "Painel executivo, categorização de despesas fixas e variáveis em USD, contas a pagar e DRE operacional estimado.",
   "tabs": {
     "overview": "Dashboard Executivo",
-    "expenses": "Controle de Despesas",
-    "payables": "Contas a Pagar"
+    "cashflow": "Fluxo de Caixa",
+    "payables": "Contas a Pagar e Receber"
+  },
+  "cashflow": {
+    "title": "Demonstrativo de Fluxo de Caixa (USD)",
+    "subtitle": "Saldo inicial, entradas de vendas, saídas liquidadas e saldo final consolidado.",
+    "openingBalance": "Saldo Inicial",
+    "inflows": "Total Entradas",
+    "outflows": "Total Saídas",
+    "closingBalance": "Saldo Final",
+    "daily": "Diário",
+    "weekly": "Semanal",
+    "monthly": "Mensal"
   },
   "kpis": {
     "realRevenue": "Receita Real Realizada",

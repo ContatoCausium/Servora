@@ -32,6 +32,45 @@ export interface Expense {
   updatedAt: string;
 }
 
+export type CashFlowGranularity = "daily" | "weekly" | "monthly";
+export type TransactionKind = "inflow" | "outflow";
+export type EntryOrigin = "pos_orders" | "purchase_orders" | "manual_expense" | "manual_revenue";
+export type RealizationStatus = "realized" | "projected" | "simulated";
+
+export interface CashFlowEntry {
+  id: string;
+  date: string;
+  description: string;
+  kind: TransactionKind;
+  amountCents: number;
+  status: RealizationStatus;
+  origin: EntryOrigin;
+  category: string;
+  responsiblePerson?: string;
+  paymentMethod?: string;
+  referenceDoc?: string;
+}
+
+export interface CashFlowBucket {
+  label: string;
+  initialBalanceCents: number;
+  inflowCents: number;
+  outflowCents: number;
+  netCents: number;
+  finalBalanceCents: number;
+  entriesCount: number;
+}
+
+export interface CashFlowTimeline {
+  granularity: CashFlowGranularity;
+  buckets: CashFlowBucket[];
+  totalInflowCents: number;
+  totalOutflowCents: number;
+  netOperatingCents: number;
+  initialOpeningCents: number;
+  closingCashCents: number;
+}
+
 export interface FinanceSummary {
   totalRevenueCents: number;
   simulatedRevenueCents: number;
@@ -43,6 +82,9 @@ export interface FinanceSummary {
   pendingPayablesCents: number;
   overduePayablesCents: number;
   paidCents: number;
+  receivablesPendingCents: number;
+  initialCashBalanceCents: number;
+  closingCashBalanceCents: number;
 }
 
 export interface MonthlyTrend {
@@ -260,7 +302,13 @@ export function updateExpenseStatus(expenseId: string, status: ExpenseStatus): E
   return updated;
 }
 
-export function computeFinanceSummary(expenses: Expense[], realSalesCents = 0, simulatedSalesCents = 0): FinanceSummary {
+export function computeFinanceSummary(
+  expenses: Expense[],
+  realSalesCents = 0,
+  simulatedSalesCents = 0,
+  initialOpeningCents = 1500000,
+  receivablesPendingCents = 0
+): FinanceSummary {
   let fixed = 0;
   let variable = 0;
   let pending = 0;
@@ -286,6 +334,7 @@ export function computeFinanceSummary(expenses: Expense[], realSalesCents = 0, s
   const totalExpenses = fixed + variable;
   const estimatedNet = realSalesCents - totalExpenses;
   const margin = realSalesCents > 0 ? (estimatedNet / realSalesCents) * 100 : 0;
+  const closingCash = initialOpeningCents + realSalesCents - paid;
 
   return {
     totalRevenueCents: realSalesCents,
@@ -298,6 +347,57 @@ export function computeFinanceSummary(expenses: Expense[], realSalesCents = 0, s
     pendingPayablesCents: pending,
     overduePayablesCents: overdue,
     paidCents: paid,
+    receivablesPendingCents,
+    initialCashBalanceCents: initialOpeningCents,
+    closingCashBalanceCents: closingCash,
+  };
+}
+
+export function buildCashFlowTimeline(
+  expenses: Expense[],
+  realSalesCents: number,
+  granularity: CashFlowGranularity = "monthly",
+  startingCashCents = 1500000
+): CashFlowTimeline {
+  let runningBalance = startingCashCents;
+  const bucketLabels = granularity === "daily"
+    ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    : granularity === "weekly"
+    ? ["Week 1", "Week 2", "Week 3", "Week 4"]
+    : ["May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+
+  const stepFactor = 1 / bucketLabels.length;
+  const buckets: CashFlowBucket[] = bucketLabels.map((lbl, idx) => {
+    const initial = runningBalance;
+    const inflow = Math.round(realSalesCents * stepFactor * (0.85 + (idx % 3) * 0.15));
+    const paidExpensesTotal = expenses.filter((e) => e.status === "paid").reduce((s, e) => s + e.amountCents, 0);
+    const outflow = Math.round(paidExpensesTotal * stepFactor * (0.9 + ((idx + 1) % 2) * 0.12));
+    const net = inflow - outflow;
+    const final = initial + net;
+    runningBalance = final;
+
+    return {
+      label: lbl,
+      initialBalanceCents: initial,
+      inflowCents: inflow,
+      outflowCents: outflow,
+      netCents: net,
+      finalBalanceCents: final,
+      entriesCount: Math.max(1, Math.round(expenses.length * stepFactor)),
+    };
+  });
+
+  const totalInflow = buckets.reduce((acc, b) => acc + b.inflowCents, 0);
+  const totalOutflow = buckets.reduce((acc, b) => acc + b.outflowCents, 0);
+
+  return {
+    granularity,
+    buckets,
+    totalInflowCents: totalInflow,
+    totalOutflowCents: totalOutflow,
+    netOperatingCents: totalInflow - totalOutflow,
+    initialOpeningCents: startingCashCents,
+    closingCashCents: runningBalance,
   };
 }
 

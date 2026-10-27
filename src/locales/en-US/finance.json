@@ -3,8 +3,19 @@
   "subtitle": "Executive financial control, expense categorisation, USD accounts payable, and estimated restaurant P&L.",
   "tabs": {
     "overview": "Executive Dashboard",
-    "expenses": "Expenses Registry",
-    "payables": "Accounts Payable"
+    "cashflow": "Cash Flow Projections",
+    "payables": "Payables & Receivables"
+  },
+  "cashflow": {
+    "title": "Cash Flow Statement (USD)",
+    "subtitle": "Opening balance, gross sales inflows, liquidated disbursements, and closing net cash.",
+    "openingBalance": "Opening Cash",
+    "inflows": "Total Inflows",
+    "outflows": "Total Outflows",
+    "closingBalance": "Closing Cash",
+    "daily": "Daily",
+    "weekly": "Weekly",
+    "monthly": "Monthly"
   },
   "kpis": {
     "realRevenue": "Real Realized Revenue",

@@ -19,8 +19,9 @@ import {
 } from "@/components/ui/dialog";
 import {
   listExpenses, saveExpense, deleteExpense, updateExpenseStatus,
-  computeFinanceSummary, generateMonthlyTrend, formatUsd,
-  type Expense, type ExpenseCategory, type ExpenseRecurrence, type ExpenseStatus
+  computeFinanceSummary, generateMonthlyTrend, buildCashFlowTimeline, formatUsd,
+  type Expense, type ExpenseCategory, type ExpenseRecurrence, type ExpenseStatus,
+  type CashFlowGranularity
 } from "@/lib/finance-service";
 import { listOrders } from "@/lib/orders-service";
 
@@ -53,6 +54,8 @@ export function FinancePage() {
   const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | "all">("all");
   const [recurrenceFilter, setRecurrenceFilter] = useState<ExpenseRecurrence | "all">("all");
   const [search, setSearch] = useState("");
+  const [viewTab, setViewTab] = useState<"overview" | "cashflow" | "payables">("overview");
+  const [cfGranularity, setCfGranularity] = useState<CashFlowGranularity>("monthly");
 
   // Modal states
   const [formOpen, setFormOpen] = useState(false);
@@ -92,6 +95,11 @@ export function FinancePage() {
     const effectiveRevenue = realSalesCents > 0 ? realSalesCents : 4250000; // Benchmark baseline if no delivered orders yet
     return generateMonthlyTrend(summary.totalExpensesCents, effectiveRevenue);
   }, [summary.totalExpensesCents, realSalesCents]);
+
+  const cashFlowTimeline = useMemo(() => {
+    const effectiveRevenue = realSalesCents > 0 ? realSalesCents : 4250000;
+    return buildCashFlowTimeline(expenses, effectiveRevenue, cfGranularity, 1500000);
+  }, [expenses, realSalesCents, cfGranularity]);
 
   // Filtered expenses list
   const filteredExpenses = useMemo(() => {
@@ -283,6 +291,96 @@ export function FinancePage() {
           </Badge>
         )}
       </div>
+
+      {/* View Selector Tabs */}
+      <div className="flex items-center gap-1 border-b pb-2 text-xs font-medium">
+        <button
+          type="button"
+          onClick={() => setViewTab("overview")}
+          className={`px-3 py-1.5 rounded-md transition-colors ${
+            viewTab === "overview" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {t("tabs.overview")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewTab("cashflow")}
+          className={`px-3 py-1.5 rounded-md transition-colors ${
+            viewTab === "cashflow" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {t("tabs.cashflow")}
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewTab("payables")}
+          className={`px-3 py-1.5 rounded-md transition-colors ${
+            viewTab === "payables" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {t("tabs.payables")}
+        </button>
+      </div>
+
+      {/* Cash Flow Special Section when selected */}
+      {viewTab === "cashflow" && (
+        <Panel
+          title={t("cashflow.title")}
+          subtitle={t("cashflow.subtitle")}
+          action={
+            <div className="flex items-center gap-1 rounded-lg border bg-muted/30 p-0.5 text-xs">
+              {(['daily', 'weekly', 'monthly'] as CashFlowGranularity[]).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setCfGranularity(g)}
+                  className={`px-2 py-1 rounded capitalize font-medium transition-colors ${
+                    cfGranularity === g ? "bg-background shadow-xs text-foreground font-semibold" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t(`cashflow.${g}`)}
+                </button>
+              ))}
+            </div>
+          }
+        >
+          <div className="grid grid-cols-2 gap-3 pb-4 sm:grid-cols-4">
+            <div className="rounded-lg border bg-muted/10 p-3">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-medium">{t("cashflow.openingBalance")}</p>
+              <p className="tabular text-lg font-bold mt-1">{formatUsd(cashFlowTimeline.initialOpeningCents)}</p>
+            </div>
+            <div className="rounded-lg border bg-emerald-500/5 border-emerald-500/20 p-3">
+              <p className="text-[11px] uppercase tracking-wider text-emerald-600 font-medium">{t("cashflow.inflows")}</p>
+              <p className="tabular text-lg font-bold text-emerald-600 mt-1">+{formatUsd(cashFlowTimeline.totalInflowCents)}</p>
+            </div>
+            <div className="rounded-lg border bg-destructive/5 border-destructive/20 p-3">
+              <p className="text-[11px] uppercase tracking-wider text-destructive font-medium">{t("cashflow.outflows")}</p>
+              <p className="tabular text-lg font-bold text-destructive mt-1">-{formatUsd(cashFlowTimeline.totalOutflowCents)}</p>
+            </div>
+            <div className="rounded-lg border bg-primary/5 border-primary/20 p-3">
+              <p className="text-[11px] uppercase tracking-wider text-primary font-medium">{t("cashflow.closingBalance")}</p>
+              <p className="tabular text-lg font-bold text-primary mt-1">{formatUsd(cashFlowTimeline.closingCashCents)}</p>
+            </div>
+          </div>
+
+          <div className="h-[240px] w-full pt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={cashFlowTimeline.buckets} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `$${v / 100000}k`} />
+                <Tooltip
+                  contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                  formatter={(val: number) => [formatUsd(val), "USD"]}
+                />
+                <Bar dataKey="inflowCents" fill="#10b981" radius={[4, 4, 0, 0]} name="Inflow (+)" />
+                <Bar dataKey="outflowCents" fill="#ef4444" radius={[4, 4, 0, 0]} name="Outflow (-)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Panel>
+      )}
 
       {/* Monthly Chart and Breakdown */}
       <div className="grid gap-6 lg:grid-cols-3">
