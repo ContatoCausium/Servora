@@ -75,6 +75,12 @@ describe("Phase 7.1: POS E2E Acceptance Flow Database Function", () => {
         _location_id: isolatedLocationId,
       }
     );
+
+    if (flowResult) {
+      expect(flowResult.stock_reversal_verified).toBe(true);
+      expect(flowResult.revenue_recorded_and_reversed).toBe(true);
+      expect(flowResult.dre_reflected_correctly).toBe(true);
+    }
     if (flowResult) {
       expect(flowResult.phase_7_1_accepted).toBe(true);
     }
