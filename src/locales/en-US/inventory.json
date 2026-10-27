@@ -65,5 +65,24 @@
   "empty": {
     "title": "No inventory items found",
     "body": "Adjust your search filters or register a new ingredient."
+  },
+  "recipes": {
+    "tab": "Recipes & BOM",
+    "newRecipe": "New Recipe",
+    "syncCosts": "Sync Stock Costs",
+    "duplicate": "Duplicate",
+    "servings": "Yield / Servings",
+    "costPerServing": "Cost per Portion",
+    "totalCost": "Total Cost",
+    "sellingPrice": "Selling Price",
+    "margin": "Gross Margin",
+    "ingredientsCount": "Linked Ingredients",
+    "waste": "Waste / Loss (%)",
+    "subtotal": "Subtotal USD",
+    "stockStatus": "Stock Status",
+    "sufficient": "In Stock",
+    "insufficient": "Insufficient Stock",
+    "history": "Change History",
+    "prepNotes": "Preparation Instructions"
   }
 }

@@ -65,5 +65,24 @@
   "empty": {
     "title": "Nenhum insumo encontrado",
     "body": "Ajuste seus filtros de busca ou cadastre um novo ingrediente para a unidade."
+  },
+  "recipes": {
+    "tab": "Fichas Técnicas (Receitas)",
+    "newRecipe": "Nova Ficha Técnica",
+    "syncCosts": "Sincronizar Custos",
+    "duplicate": "Duplicar",
+    "servings": "Rendimento",
+    "costPerServing": "Custo por Porção",
+    "totalCost": "Custo Total",
+    "sellingPrice": "Preço de Venda",
+    "margin": "Margem Estimada",
+    "ingredientsCount": "Ingredientes Vinculados",
+    "waste": "Perda / Quebra (%)",
+    "subtotal": "Subtotal USD",
+    "stockStatus": "Status no Estoque",
+    "sufficient": "Estoque Suficiente",
+    "insufficient": "Insumo Insuficiente",
+    "history": "Histórico de Alterações",
+    "prepNotes": "Modo de Preparo / Instruções"
   }
 }
