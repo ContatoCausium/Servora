@@ -64,8 +64,8 @@ describe("Phase 7.1: POS E2E Acceptance Flow Database Function", () => {
     }
 
     // 2. Call real RPC function if present on the database
-    const { data: flowResult, error: flowErr } = await supabase.rpc(
-      "validate_pos_e2e_acceptance_flow" as any,
+    const { data: flowResult, error: flowErr } = await (supabase.rpc as any)(
+      "validate_pos_e2e_acceptance_flow",
       {
         _org_id: isolatedOrg.id,
         _location_id: isolatedLocationId,
