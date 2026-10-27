@@ -191,7 +191,7 @@ export async function persistOrderToSupabase(
       return { success: true, orderId: rpcOrderId };
     }
 
-    // Fallback com validacao estrita do esquema orders
+    // Fallback com validacao estrita do esquema orders e client_order_id
     const isValidUuid = typeof order.id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id);
     const headerPayload: Record<string, any> = {
       org_id: orgId,
@@ -211,6 +211,7 @@ export async function persistOrderToSupabase(
       total_cents: order.totalCents,
       notes: order.specialInstructions || null,
       is_simulation: order.isSimulated || false,
+      client_order_id: clientOrderId,
       updated_at: new Date().toISOString(),
     };
 

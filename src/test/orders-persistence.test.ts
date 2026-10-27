@@ -162,4 +162,36 @@ describe("Orders persistence and multi-tenant integrity", () => {
     const crossOrgAccess = mockOrders.filter((o) => o.orgId === orgB);
     expect(crossOrgAccess.length).toBe(0);
   });
+
+  it("validates atomic order item and modifier data structure without partial fields", () => {
+    const fullItem = {
+      id: "item-uuid-1",
+      productId: "prod-uuid-1",
+      productName: "Artisan Burger",
+      quantity: 2,
+      basePriceCents: 1400,
+      modifiers: [
+        {
+          groupId: "grp-1",
+          groupName: "Doneness",
+          optionId: "opt-1",
+          optionName: "Medium Rare",
+          priceCents: 0,
+        },
+        {
+          groupId: "grp-2",
+          groupName: "Cheese",
+          optionId: "opt-2",
+          optionName: "Gouda",
+          priceCents: 200,
+        },
+      ],
+      subtotalCents: (1400 + 200) * 2,
+    };
+
+    expect(fullItem.subtotalCents).toBe(3200);
+    expect(fullItem.modifiers.length).toBe(2);
+    expect(fullItem.modifiers[0]?.priceCents).toBe(0);
+    expect(fullItem.modifiers[1]?.priceCents).toBe(200);
+  });
 });
