@@ -10,8 +10,14 @@ import { PageHeader, Panel } from "@/components/app/page";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { computeIntelligenceSummary, type IntelligenceInsight } from "@/lib/intelligence-service";
+import { 
+  computeIntelligenceSummary, 
+  executeAgentQuery, 
+  type IntelligenceInsight, 
+  type AgentQueryResponse 
+} from "@/lib/intelligence-service";
 import { WhatsAppPreviewCard } from "@/components/intelligence/whatsapp-preview-card";
+import { Input } from "@/components/ui/input";
 import { fmtCurrency, fmtPercent } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/_app/intelligence")({
@@ -32,6 +38,33 @@ export function IntelligencePage() {
   const [periodDays, setPeriodDays] = useState<number>(30);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [selectedInsight, setSelectedInsight] = useState<IntelligenceInsight | null>(null);
+
+  // Estado do Agente de Consultas Executivas (Fase 6.2)
+  const [searchPrompt, setSearchPrompt] = useState<string>("");
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [activeReport, setActiveReport] = useState<AgentQueryResponse | null>(null);
+  const [queryHistory, setQueryHistory] = useState<AgentQueryResponse[]>([]);
+
+  const handleRunQuery = (promptToRun?: string) => {
+    const q = (promptToRun ?? searchPrompt).trim();
+    if (!q) return;
+    setIsProcessing(true);
+    setTimeout(() => {
+      const response = executeAgentQuery(q, org.id, locationId, periodDays);
+      setActiveReport(response);
+      setQueryHistory((prev) => [response, ...prev.filter(item => item.id !== response.id)].slice(0, 5));
+      setIsProcessing(false);
+      if (!promptToRun) setSearchPrompt("");
+    }, 280);
+  };
+
+  const SUGGESTED_PROMPTS = [
+    "Qual é o meu CMV atual e onde estão os maiores custos?",
+    "Quanto dinheiro perdi com desperdício e quebras neste mês?",
+    "Quais itens do estoque têm maior risco de ruptura?",
+    "Como está a margem bruta de lucro e despesas das lojas?",
+    "Qual é a situação de compras e fornecedores ativos?",
+  ];
 
   // Cálculo determinístico modular e seguro
   const summary = useMemo(() => {
@@ -89,6 +122,143 @@ export function IntelligencePage() {
           </div>
         }
       />
+
+      {/* ASSISTENTE DE CONSULTAS EXECUTIVAS - FASE 6.2 */}
+      <Card className="border-primary/30 bg-gradient-to-b from-card to-primary/5 shadow-xs overflow-hidden">
+        <CardHeader className="p-4 sm:p-5 border-b bg-card/60">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                <Sparkles className="size-5" />
+              </div>
+              <div>
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  Agente Executivo de Consultas
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    Motor Determinístico Ativo
+                  </Badge>
+                </CardTitle>
+                <CardDescription className="text-xs mt-0.5">
+                  Faça perguntas analíticas sobre vendas, despesas, CMV, desperdício ou selecione uma consulta pronta.
+                </CardDescription>
+              </div>
+            </div>
+            <span className="text-[11px] text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-md self-start sm:self-auto">
+              Sem LLM Externa · 100% Auditável
+            </span>
+          </div>
+
+          {/* Campo de Entrada da Pergunta */}
+          <div className="mt-4 flex gap-2">
+            <Input
+              placeholder="Ex.: Qual é o meu CMV atual e onde estão as perdas de lucro?"
+              value={searchPrompt}
+              onChange={(e) => setSearchPrompt(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleRunQuery()}
+              className="text-xs h-9 bg-background/80"
+            />
+            <Button
+              size="sm"
+              disabled={isProcessing || !searchPrompt.trim()}
+              onClick={() => handleRunQuery()}
+              className="h-9 px-4 text-xs font-medium shrink-0"
+            >
+              {isProcessing ? <RefreshCw className="size-3.5 animate-spin mr-1.5" /> : <Sparkles className="size-3.5 mr-1.5" />}
+              Consultar
+            </Button>
+          </div>
+
+          {/* Pílulas de Perguntas Sugeridas */}
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {SUGGESTED_PROMPTS.map((prompt, idx) => (
+              <button
+                key={idx}
+                onClick={() => handleRunQuery(prompt)}
+                className="rounded-md border bg-background/70 px-2.5 py-1 text-[11px] text-muted-foreground hover:bg-card hover:text-foreground hover:border-primary/40 transition-colors"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </CardHeader>
+
+        {/* Relatório Gerado pelo Agente */}
+        {activeReport && (
+          <CardContent className="p-5 space-y-4 bg-card/40">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+              <div className="space-y-0.5">
+                <p className="text-[11px] font-medium text-primary uppercase tracking-wider">
+                  {activeReport.report.title}
+                </p>
+                <h3 className="text-lg font-bold text-foreground">{activeReport.headline}</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-[10px]">
+                  {activeReport.confidence === "deterministic" ? "Cálculo Determinístico" : "Estatístico"}
+                </Badge>
+                <span className="text-[11px] text-muted-foreground">{activeReport.timestamp}</span>
+              </div>
+            </div>
+
+            <p className="text-xs leading-relaxed text-foreground/90 bg-muted/20 p-3 rounded-lg border border-border/40">
+              {activeReport.report.summary}
+            </p>
+
+            {/* Evidências Numéricas com Origem dos Dados */}
+            <div>
+              <p className="text-xs font-semibold mb-2 flex items-center gap-1.5 text-muted-foreground">
+                <DollarSign className="size-3.5 text-primary" /> Evidências Numéricas Registradas
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {activeReport.report.numericEvidence.map((ev, i) => (
+                  <div key={i} className="rounded-lg border bg-background/80 p-2.5 space-y-1">
+                    <span className="text-[11px] text-muted-foreground block truncate">{ev.label}</span>
+                    <span className="text-sm font-bold text-foreground block">{ev.value}</span>
+                    <Badge variant="outline" className="text-[9px] px-1 py-0 border-muted-foreground/30">
+                      {ev.origin === "real_recorded" ? "Dado Real" : ev.origin === "mixed_verified" ? "Estimado" : "Simulado"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Explicação de Cálculos & Recomendações */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="space-y-1.5 bg-muted/30 p-3 rounded-lg text-xs border">
+                <p className="font-semibold text-foreground flex items-center gap-1.5">
+                  <HelpCircle className="size-3.5 text-primary" /> Metodologia & Origem dos Cálculos
+                </p>
+                <p className="text-muted-foreground text-[11px] leading-relaxed">
+                  {activeReport.report.calculationExplanation}
+                </p>
+                <p className="text-[11px] text-muted-foreground pt-1">
+                  <strong>Período:</strong> {activeReport.report.periodAnalyzed}
+                </p>
+              </div>
+
+              <div className="space-y-2 bg-primary/5 p-3 rounded-lg text-xs border border-primary/20">
+                <p className="font-semibold text-foreground flex items-center gap-1.5">
+                  <CheckCircle2 className="size-3.5 text-primary" /> Recomendações Práticas Acionáveis
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-muted-foreground text-[11px]">
+                  {activeReport.report.practicalRecommendations.map((rec, i) => (
+                    <li key={i}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            {/* Limitações Claras sem Afirmação de Causalidade Indevida */}
+            <div className="text-[11px] text-muted-foreground bg-muted/10 p-2.5 rounded border border-dashed flex items-start gap-2">
+              <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-medium text-foreground">Limitações do Modelo:</span>{" "}
+                {activeReport.report.limitations.join(" · ")}
+              </div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
 
       {/* Rótulo de Transparência Metodológica */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-xs text-muted-foreground flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
