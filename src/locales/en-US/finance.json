@@ -3,8 +3,32 @@
   "subtitle": "Executive financial control, expense categorisation, USD accounts payable, and estimated restaurant P&L.",
   "tabs": {
     "overview": "Executive Dashboard",
+    "dre": "P&L & Margins",
     "cashflow": "Cash Flow Projections",
     "payables": "Payables & Receivables"
+  },
+  "dre": {
+    "title": "Income Statement (P&L / DRE)",
+    "subtitle": "Managerial profitability in USD: gross volume, deductions, COGS, operating overhead and net earnings.",
+    "grossRevenue": "Gross Sales Revenue",
+    "discounts": "(-) Discounts & Promotions",
+    "taxes": "(-) Sales Taxes & Duties",
+    "netRevenue": "(=) Net Operating Revenue",
+    "cogs": "(-) Cost of Goods Sold (COGS)",
+    "grossProfit": "(=) Gross Profit",
+    "grossMargin": "Gross Margin",
+    "operatingExpenses": "(-) Operating Expenses (OpEx)",
+    "fixedExpenses": "Fixed Operational Overhead",
+    "variableExpenses": "Variable Operational Overhead",
+    "operatingProfit": "(=) Operating Profit (EBITDA)",
+    "operatingMargin": "Operating Margin",
+    "netProfit": "(=) Estimated Net Profit",
+    "netMargin": "Net Margin",
+    "productMarginsTitle": "Product Margin Contribution",
+    "categoryMarginsTitle": "Category Profitability Analysis",
+    "alertHighCogs": "Alert: COGS above standard threshold (35%)",
+    "alertLowMargin": "Notice: Gross margin below 60% target",
+    "healthy": "Healthy Margin"
   },
   "cashflow": {
     "title": "Cash Flow Statement (USD)",

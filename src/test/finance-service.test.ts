@@ -6,7 +6,7 @@ import {
   type Expense,
 } from "../lib/finance-service";
 
-describe("Finance Service - Phase 5.2", () => {
+describe("Finance Service - Phase 5.3 (DRE & Margins)", () => {
   const sampleExpenses: Expense[] = [
     {
       id: "e1",
@@ -87,5 +87,36 @@ describe("Finance Service - Phase 5.2", () => {
     expect(formatUsd(125050)).toBe("$1,250.50");
     expect(formatUsd(-35000)).toBe("-$350.00");
     expect(formatUsd(0)).toBe("$0.00");
+  });
+
+  it("calculates managerial DRE statement correctly with COGS, OpEx and Margins", () => {
+    const dre = calculateDreStatement(
+      1000000, // $10,000 gross revenue
+      20000,   // $200 discounts
+      80000,   // $800 taxes
+      270000,  // $2,700 COGS (30% of net)
+      sampleExpenses,
+      150000   // $1,500 simulated sales (must be excluded from net revenue)
+    );
+
+    expect(dre.grossRevenueCents).toBe(1000000);
+    expect(dre.netRevenueCents).toBe(900000); // 1,000,000 - 20,000 - 80,000
+    expect(dre.cogsCents).toBe(270000);
+    expect(dre.grossProfitCents).toBe(630000); // 900,000 - 270,000
+    expect(dre.grossMarginPct).toBe(70); // 630k / 900k = 70%
+    expect(dre.simulatedGrossRevenueCents).toBe(150000);
+    expect(dre.operatingProfitCents).toBeLessThan(dre.grossProfitCents);
+  });
+
+  it("evaluates product margins and identifies high cost / low margin alerts", () => {
+    const products = [
+      { id: "p1", name: "Prime Burger", category: "Burgers", priceCents: 1500, recipeCostCents: 600, unitsSold: 10 }, // COGS 40% -> alert
+      { id: "p2", name: "Fries", category: "Sides", priceCents: 500, recipeCostCents: 100, unitsSold: 20 }, // COGS 20% -> healthy
+    ];
+
+    const margins = calculateProductMargins(products);
+    expect(margins[0]?.hasHighCostAlert).toBe(true);
+    expect(margins[1]?.hasHighCostAlert).toBe(false);
+    expect(margins[1]?.grossMarginPct).toBe(80);
   });
 });

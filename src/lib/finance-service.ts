@@ -94,6 +94,49 @@ export interface MonthlyTrend {
   netProfitCents: number;
 }
 
+export interface ProductMarginMetric {
+  productId: string;
+  productName: string;
+  category: string;
+  unitsSold: number;
+  revenueCents: number;
+  cogsCents: number;
+  grossProfitCents: number;
+  grossMarginPct: number;
+  cogsPct: number;
+  hasHighCostAlert: boolean;
+  hasLowMarginAlert: boolean;
+}
+
+export interface CategoryMarginMetric {
+  category: string;
+  revenueCents: number;
+  cogsCents: number;
+  grossProfitCents: number;
+  grossMarginPct: number;
+  cogsPct: number;
+}
+
+export interface DreStatement {
+  grossRevenueCents: number;
+  discountsCents: number;
+  taxesCents: number;
+  netRevenueCents: number;
+  cogsCents: number;
+  grossProfitCents: number;
+  grossMarginPct: number;
+  operatingExpensesCents: number;
+  fixedExpensesCents: number;
+  variableExpensesCents: number;
+  operatingProfitCents: number;
+  operatingMarginPct: number;
+  estimatedNetProfitCents: number;
+  netMarginPct: number;
+  simulatedGrossRevenueCents: number;
+  projectedExpensesCents: number;
+  alertsCount: number;
+}
+
 const EXPENSES_STORAGE_KEY = "servora.finance.expenses.v1";
 
 function getStorage(): Expense[] {
@@ -416,6 +459,119 @@ export function generateMonthlyTrend(currentExpensesCents: number, currentRevenu
       netProfitCents: rev - exp,
     };
   });
+}
+
+export function calculateDreStatement(
+  realSalesCents: number,
+  discountsCents: number,
+  taxesCents: number,
+  cogsCents: number,
+  expenses: Expense[],
+  simulatedSalesCents = 0
+): DreStatement {
+  const grossRevenueCents = Math.max(0, realSalesCents);
+  const netRevenueCents = Math.max(0, grossRevenueCents - Math.max(0, discountsCents) - Math.max(0, taxesCents));
+  const safeCogsCents = Math.max(0, cogsCents);
+  const grossProfitCents = netRevenueCents - safeCogsCents;
+  const grossMarginPct = netRevenueCents > 0 ? (grossProfitCents / netRevenueCents) * 100 : 0;
+
+  let fixedExp = 0;
+  let varExp = 0;
+  let projExp = 0;
+
+  for (const exp of expenses) {
+    if (exp.isSimulation) continue;
+    if (exp.category === "ingredients" || exp.category === "suppliers") continue; // Exclude direct COGS from OpEx
+    if (exp.recurrence === "fixed") {
+      fixedExp += exp.amountCents;
+    } else {
+      varExp += exp.amountCents;
+    }
+    if (exp.status === "pending" || exp.status === "overdue") {
+      projExp += exp.amountCents;
+    }
+  }
+
+  const operatingExpensesCents = fixedExp + varExp;
+  const operatingProfitCents = grossProfitCents - operatingExpensesCents;
+  const operatingMarginPct = netRevenueCents > 0 ? (operatingProfitCents / netRevenueCents) * 100 : 0;
+  const estimatedNetProfitCents = operatingProfitCents;
+  const netMarginPct = netRevenueCents > 0 ? (estimatedNetProfitCents / netRevenueCents) * 100 : 0;
+
+  let alerts = 0;
+  if (netRevenueCents > 0 && (safeCogsCents / netRevenueCents) > 0.35) alerts += 1;
+  if (grossMarginPct < 60 && netRevenueCents > 0) alerts += 1;
+
+  return {
+    grossRevenueCents,
+    discountsCents: Math.max(0, discountsCents),
+    taxesCents: Math.max(0, taxesCents),
+    netRevenueCents,
+    cogsCents: safeCogsCents,
+    grossProfitCents,
+    grossMarginPct,
+    operatingExpensesCents,
+    fixedExpensesCents: fixedExp,
+    variableExpensesCents: varExp,
+    operatingProfitCents,
+    operatingMarginPct,
+    estimatedNetProfitCents,
+    netMarginPct,
+    simulatedGrossRevenueCents: Math.max(0, simulatedSalesCents),
+    projectedExpensesCents: projExp,
+    alertsCount: alerts,
+  };
+}
+
+export function calculateProductMargins(
+  products: Array<{ id: string; name: string; category?: string; priceCents: number; recipeCostCents?: number; unitsSold?: number }>
+): ProductMarginMetric[] {
+  return products.map((p) => {
+    const units = p.unitsSold ?? 1;
+    const unitPrice = p.priceCents;
+    const unitCost = p.recipeCostCents ?? Math.round(unitPrice * 0.28);
+    const rev = unitPrice * units;
+    const cogs = unitCost * units;
+    const gross = rev - cogs;
+    const marginPct = rev > 0 ? (gross / rev) * 100 : 0;
+    const cogsPct = rev > 0 ? (cogs / rev) * 100 : 0;
+
+    return {
+      productId: p.id,
+      productName: p.name,
+      category: p.category || "General",
+      unitsSold: units,
+      revenueCents: rev,
+      cogsCents: cogs,
+      grossProfitCents: gross,
+      grossMarginPct: marginPct,
+      cogsPct,
+      hasHighCostAlert: cogsPct > 35,
+      hasLowMarginAlert: marginPct < 60,
+    };
+  });
+}
+
+export function calculateCategoryMargins(productMetrics: ProductMarginMetric[]): CategoryMarginMetric[] {
+  const grouped = new Map<string, { rev: number; cogs: number; gross: number }>();
+
+  for (const m of productMetrics) {
+    const cat = m.category || "General";
+    const cur = grouped.get(cat) ?? { rev: 0, cogs: 0, gross: 0 };
+    cur.rev += m.revenueCents;
+    cur.cogs += m.cogsCents;
+    cur.gross += m.grossProfitCents;
+    grouped.set(cat, cur);
+  }
+
+  return Array.from(grouped.entries()).map(([category, val]) => ({
+    category,
+    revenueCents: val.rev,
+    cogsCents: val.cogs,
+    grossProfitCents: val.gross,
+    grossMarginPct: val.rev > 0 ? (val.gross / val.rev) * 100 : 0,
+    cogsPct: val.rev > 0 ? (val.cogs / val.rev) * 100 : 0,
+  }));
 }
 
 export function formatUsd(cents: number): string {

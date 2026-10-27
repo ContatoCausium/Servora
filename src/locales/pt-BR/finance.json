@@ -3,8 +3,32 @@
   "subtitle": "Painel executivo, categorização de despesas fixas e variáveis em USD, contas a pagar e DRE operacional estimado.",
   "tabs": {
     "overview": "Dashboard Executivo",
+    "dre": "DRE & Margens",
     "cashflow": "Fluxo de Caixa",
     "payables": "Contas a Pagar e Receber"
+  },
+  "dre": {
+    "title": "Demonstrativo de Resultados do Exercício (DRE)",
+    "subtitle": "Visão gerencial da rentabilidade em USD: receita, deduções fiscais, CMV, despesas e lucro líquido.",
+    "grossRevenue": "Receita Bruta de Vendas",
+    "discounts": "(-) Descontos Concedidos",
+    "taxes": "(-) Impostos sobre Vendas",
+    "netRevenue": "(=) Receita Operacional Líquida",
+    "cogs": "(-) Custo das Mercadorias Vendidas (CMV)",
+    "grossProfit": "(=) Lucro Bruto",
+    "grossMargin": "Margem Bruta",
+    "operatingExpenses": "(-) Despesas Operacionais (OpEx)",
+    "fixedExpenses": "Despesas Operacionais Fixas",
+    "variableExpenses": "Despesas Operacionais Variáveis",
+    "operatingProfit": "(=) Resultado Operacional (EBITDA)",
+    "operatingMargin": "Margem Operacional",
+    "netProfit": "(=) Lucro Líquido Estimado",
+    "netMargin": "Margem Líquida",
+    "productMarginsTitle": "Análise de Margem por Produto",
+    "categoryMarginsTitle": "Rentabilidade por Categoria",
+    "alertHighCogs": "Alerta: CMV acima do limite saudável (35%)",
+    "alertLowMargin": "Atenção: Margem abaixo de 60%",
+    "healthy": "Rentabilidade Saudável"
   },
   "cashflow": {
     "title": "Demonstrativo de Fluxo de Caixa (USD)",
