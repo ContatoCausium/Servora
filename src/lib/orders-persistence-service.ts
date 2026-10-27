@@ -239,6 +239,96 @@ export async function persistOrderToSupabase(
   }
 }
 
+export async function cancelOrderWithReversal(
+  orderId: string,
+  reason?: string
+): Promise<{ success: boolean; alreadyCancelled?: boolean; error?: string }> {
+  try {
+    const { data: orderData } = await supabase
+      .from("orders")
+      .select("status")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (orderData?.status === "cancelled") {
+      return { success: true, alreadyCancelled: true };
+    }
+
+    const { error: cancelErr } = await supabase.rpc("cancel_order_with_reversal", {
+      _order_id: orderId,
+      _reason: reason || "Cancelled with automatic recipe inventory and finance reversal",
+    });
+    if (cancelErr) {
+      return { success: false, error: cancelErr.message };
+    }
+    return { success: true, alreadyCancelled: false };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+}
+
+export async function persistFinalizedPOSSaleAtomic(
+  session: any,
+  clientOrderId?: string
+): Promise<{ success: boolean; orderId?: string; orderNumber?: string; error?: string }> {
+  try {
+    const payloadItems = (session.cart || []).map((it: any) => ({
+      product_id: it.productId && it.productId.length === 36 ? it.productId : null,
+      product_name: it.productName || "Item",
+      unit_price_cents: it.unitPriceCents || 0,
+      quantity: it.quantity || 1,
+      modifiers: (it.modifiers || []).map((m: any) => ({
+        option_id: m.optionId && m.optionId.length === 36 ? m.optionId : null,
+        group_name: m.groupName || "Modifier",
+        option_name: m.optionName || "Option",
+        price_cents: m.priceCents || 0,
+      })),
+      notes: it.notes || null,
+    }));
+
+    if (payloadItems.length === 0) {
+      return { success: false, error: "O carrinho está vazio." };
+    }
+
+    const txKey = clientOrderId || session.clientOrderId || `pos-tx-${session.id || Date.now()}`;
+    const paymentMethod = session.payment?.method || "cash";
+
+    const { data: rpcOrderId, error: rpcErr } = await supabase.rpc("persist_finalized_pos_sale_atomic", {
+      _org_id: session.orgId,
+      _location_id: session.locationId,
+      _type: session.orderType || "dine_in",
+      _customer_name: session.customerName || "Walk-in",
+      _customer_phone: session.customerPhone || null,
+      _customer_email: session.customerEmail || null,
+      _delivery_address: session.deliveryAddress || null,
+      _table_number: session.tableNumber || null,
+      _notes: session.notes || null,
+      _discount_cents: session.discountCents || 0,
+      _tax_rate_basis_points: session.taxRateBasisPoints || 825,
+      _items: payloadItems,
+      _is_simulation: false,
+      _client_order_id: txKey,
+      _payment_method: paymentMethod,
+    });
+
+    if (rpcErr) {
+      return { success: false, error: rpcErr.message };
+    }
+
+    if (!rpcOrderId) {
+      return { success: false, error: "Resposta vazia do servidor ao registrar venda." };
+    }
+
+    if (rpcErr) {
+      return { success: false, error: rpcErr.message };
+    }
+
+    return { success: true, orderId: rpcOrderId };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
+}
+
 export async function persistOrderStatusTransition(
   orderId: string,
   status: OrderStatus

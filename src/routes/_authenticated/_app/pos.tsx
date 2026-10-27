@@ -167,10 +167,10 @@ export function POSPage() {
     }
     setSubmittingSale(true);
     try {
-      const idemKey = `pos-tx-${session.id}-${Date.now()}`;
+      const idemKey = session.clientOrderId || `pos-tx-${session.id || Date.now()}`;
       const persistRes = await persistFinalizedPOSSaleAtomic(paid, idemKey);
       if (!persistRes.success || !persistRes.orderId) {
-        throw new Error(persistRes.error || "RPC create_restaurant_order unconfirmed");
+        throw new Error(persistRes.error || "RPC persist_finalized_pos_sale_atomic unconfirmed");
       }
 
       const finalizedRecord = {
@@ -180,6 +180,7 @@ export function POSPage() {
 
       setReceiptSession(finalizedRecord);
       setCheckoutOpen(false);
+      // Only reset active cart once server confirmed sale ID
       setSession(getPOSSession(org.id, activeLocId, cashierName));
       toast.success(`Venda registrada com sucesso! Pedido #${persistRes.orderNumber || persistRes.orderId.slice(0, 8)}`);
     } catch (err) {
@@ -199,7 +200,11 @@ export function POSPage() {
       if (!res.success) {
         throw new Error(res.error || "Falha na reversão atômica");
       }
-      toast.success("Venda cancelada e estoque revertido com sucesso.");
+      if (res.alreadyCancelled) {
+        toast.info("Esta venda já havia sido cancelada previamente.");
+      } else {
+        toast.success("Venda cancelada e estoque revertido com sucesso.");
+      }
       setCancelModalOpen(false);
       setReceiptSession(null);
       setCancelReason("");
