@@ -6,6 +6,9 @@ import {
   computeFinanceSummary,
   compareStoreFinancials,
   formatUsd,
+  generateFinancialReport,
+  exportReportToCsv,
+  exportReportToXmlSpreadsheet,
   type Expense,
 } from "@/lib/finance-service";
 
@@ -182,5 +185,32 @@ describe("Finance Service - DRE, Margins & Cash Accounting", () => {
     expect(comparison.stores[0]?.status).toBe("empty");
     expect(comparison.stores[0]?.grossRevenueCents).toBe(0);
     expect(comparison.stores[0]?.netProfitRank).toBe(1);
+  });
+
+  it("generates financial reports and exports to CSV and Excel XML accurately", () => {
+    const report = generateFinancialReport({
+      filters: {
+        reportType: "expenses",
+        locationId: "loc-1",
+        dataType: "all",
+      },
+      restaurantName: "Test Bistro",
+      locationName: "Store Downtown",
+      expenses: sampleExpenses,
+      orders: [],
+    });
+
+    expect(report.title).toBe("Operating Expenses Detail");
+    expect(report.currency).toBe("USD");
+    expect(report.rows.length).toBeGreaterThanOrEqual(3);
+    expect(report.totalOutflowCents).toBe(900000);
+
+    const csv = exportReportToCsv(report);
+    expect(csv).toContain("# Restaurant: Test Bistro");
+    expect(csv).toContain("Rent lease");
+
+    const xml = exportReportToXmlSpreadsheet(report);
+    expect(xml).toContain("progid=\"Excel.Sheet\"");
+    expect(xml).toContain("Test Bistro");
   });
 });

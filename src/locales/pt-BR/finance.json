@@ -6,7 +6,8 @@
     "comparison": "Comparativo de Lojas",
     "dre": "DRE & Margens",
     "cashflow": "Fluxo de Caixa",
-    "payables": "Contas a Pagar e Receber"
+    "payables": "Contas a Pagar e Receber",
+    "reports": "Relatórios & Exportações"
   },
   "comparison": {
     "title": "Comparativo Financeiro Entre Lojas",
@@ -160,5 +161,39 @@
     "trendSubtitle": "Comparativo de receita realizada versus despesas operacionais",
     "breakdownTitle": "Distribuição de Despesas",
     "breakdownSubtitle": "Composição por categoria de custo operacional"
+  },
+  "reports": {
+    "title": "Relatórios Financeiros & Exportações",
+    "subtitle": "Exportação de balancetes e lançamentos em CSV, XML para Excel ou impressão limpa em PDF",
+    "exportCsv": "Exportar CSV",
+    "exportExcel": "Exportar Excel (XML)",
+    "exportPdf": "Imprimir / Salvar PDF",
+    "exportedCsv": "Exportação CSV gerada com sucesso!",
+    "exportedXmlNote": "Arquivo compatível com Microsoft Excel gerado.",
+    "allLocations": "Todas as Unidades",
+    "allData": "Todos os Lançamentos",
+    "onlyRealized": "Apenas Realizados",
+    "onlyProjected": "Apenas Projetados",
+    "onlySimulated": "Apenas Simulados",
+    "recordsCount": "registros encontrados",
+    "periodTotalInflow": "Total de Entradas no Ciclo",
+    "periodTotalOutflow": "Total de Saídas no Ciclo",
+    "netBalance": "Saldo Operacional do Relatório",
+    "colDateOrKey": "Data / Chave",
+    "colTitle": "Título / Lançamento",
+    "colCategory": "Categoria / Detalhe",
+    "colAmount": "Valor (USD)",
+    "colStatus": "Status",
+    "colNotes": "Observações",
+    "emptyRecords": "Nenhum lançamento financeiro corresponde aos filtros definidos.",
+    "types": {
+      "cash_flow": "Atividade de Fluxo de Caixa",
+      "revenue": "Receitas & Vendas",
+      "expenses": "Despesas Operacionais (OpEx)",
+      "payables": "Contas a Pagar & Obrigações",
+      "margins": "CMV & Margens por Produto",
+      "performance": "Desempenho Multi-Unidades",
+      "trends": "Tendências & Variação Mensal"
+    }
   }
 }

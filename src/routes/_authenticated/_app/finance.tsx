@@ -25,6 +25,7 @@ import {
   type Expense, type ExpenseCategory, type ExpenseRecurrence, type ExpenseStatus,
   type CashFlowGranularity
 } from "@/lib/finance-service";
+import { FinanceReports } from "@/components/finance/finance-reports";
 import { listMenuProducts } from "@/lib/menu-service";
 import { listOrders } from "@/lib/orders-service";
 
@@ -57,7 +58,7 @@ export function FinancePage() {
   const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | "all">("all");
   const [recurrenceFilter, setRecurrenceFilter] = useState<ExpenseRecurrence | "all">("all");
   const [search, setSearch] = useState("");
-  const [viewTab, setViewTab] = useState<"overview" | "comparison" | "dre" | "cashflow" | "payables">("overview");
+  const [viewTab, setViewTab] = useState<"overview" | "comparison" | "dre" | "cashflow" | "payables" | "reports">("overview");
   const [cfGranularity, setCfGranularity] = useState<CashFlowGranularity>("monthly");
   const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => org.locations.map((l) => l.id));
 
@@ -411,7 +412,30 @@ export function FinancePage() {
         >
           {t("tabs.payables")}
         </button>
+        <button
+          type="button"
+          onClick={() => setViewTab("reports")}
+          className={`px-3 py-1.5 rounded-md transition-colors ${
+            viewTab === "reports" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {t("tabs.reports")}
+        </button>
       </div>
+
+      {/* Reports & Exports View */}
+      {viewTab === "reports" && (
+        <FinanceReports
+          orgId={org.id}
+          restaurantName={org.name}
+          locations={org.locations.map((l) => ({ id: l.id, name: l.name }))}
+          currentLocationId={locationId}
+          expenses={expenses}
+          orders={orders}
+          productMargins={productMargins}
+          storeComparisons={storeComparison.stores}
+        />
+      )}
 
       {/* Multi-Store Comparison View */}
       {viewTab === "comparison" && (

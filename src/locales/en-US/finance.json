@@ -6,7 +6,8 @@
     "comparison": "Store Comparison",
     "dre": "P&L / DRE Statement",
     "cashflow": "Cash Flow Statement",
-    "payables": "Accounts Payable & Receivable"
+    "payables": "Accounts Payable & Receivable",
+    "reports": "Reports & Exports"
   },
   "comparison": {
     "title": "Multi-Store Financial Comparison",
@@ -147,5 +148,39 @@
     "trendSubtitle": "Realized revenue vs operational expenditure comparison",
     "breakdownTitle": "Expense Composition",
     "breakdownSubtitle": "Cost share by operating category"
+  },
+  "reports": {
+    "title": "Financial Reports & Exports",
+    "subtitle": "Clean operational and executive reports ready for CSV, Excel XML or clean print/PDF export",
+    "exportCsv": "Export CSV",
+    "exportExcel": "Export Excel (XML)",
+    "exportPdf": "Print / Save PDF",
+    "exportedCsv": "CSV export generated successfully!",
+    "exportedXmlNote": "Spreadsheet generated in Excel-compatible XML format.",
+    "allLocations": "All Locations",
+    "allData": "All Data Types",
+    "onlyRealized": "Only Realized",
+    "onlyProjected": "Only Projected",
+    "onlySimulated": "Only Simulated",
+    "recordsCount": "records found",
+    "periodTotalInflow": "Total Inflow Recorded",
+    "periodTotalOutflow": "Total Outflow Recorded",
+    "netBalance": "Report Net Balance",
+    "colDateOrKey": "Date / Key",
+    "colTitle": "Title / Item",
+    "colCategory": "Category / Detail",
+    "colAmount": "Amount (USD)",
+    "colStatus": "Status",
+    "colNotes": "Notes",
+    "emptyRecords": "No financial records match the selected criteria.",
+    "types": {
+      "cash_flow": "Cash Flow Activity",
+      "revenue": "Revenue & Sales Breakdown",
+      "expenses": "Operating Expenses (OpEx)",
+      "payables": "Accounts Payable & Obligations",
+      "margins": "COGS & Product Margins",
+      "performance": "Multi-Store Performance",
+      "trends": "Historical Monthly Trends"
+    }
   }
 }
