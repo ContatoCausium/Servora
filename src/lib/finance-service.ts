@@ -117,6 +117,45 @@ export interface CategoryMarginMetric {
   cogsPct: number;
 }
 
+export type DataReliabilityStatus = "realized" | "projected" | "estimated" | "simulated" | "empty";
+
+export interface StoreFinancialComparison {
+  locationId: string;
+  locationName: string;
+  orderCount: number;
+  grossRevenueCents: number;
+  discountsCents: number;
+  taxesCents: number;
+  netRevenueCents: number;
+  cogsCents: number;
+  cogsPct: number;
+  operatingExpensesCents: number;
+  grossProfitCents: number;
+  grossMarginPct: number;
+  estimatedNetProfitCents: number;
+  netMarginPct: number;
+  averageTicketCents: number;
+  simulatedRevenueCents: number;
+  hasRealData: boolean;
+  status: DataReliabilityStatus;
+  revenueRank: number;
+  marginRank: number;
+  netProfitRank: number;
+  isBestPerformer: boolean;
+  hasHighCostAlert: boolean;
+  hasLowMarginAlert: boolean;
+}
+
+export interface StoreComparisonSummary {
+  stores: StoreFinancialComparison[];
+  benchmarkTotalGrossRevenueCents: number;
+  benchmarkTotalNetProfitCents: number;
+  benchmarkAvgMarginPct: number;
+  topRevenueStoreName: string;
+  topMarginStoreName: string;
+  highestExpenseStoreName: string;
+}
+
 export interface DreStatement {
   grossRevenueCents: number;
   discountsCents: number;
@@ -575,6 +614,129 @@ export function calculateCategoryMargins(productMetrics: ProductMarginMetric[]):
     grossMarginPct: val.rev > 0 ? (val.gross / val.rev) * 100 : 0,
     cogsPct: val.rev > 0 ? (val.cogs / val.rev) * 100 : 0,
   }));
+}
+
+export function compareStoreFinancials(
+  storesInput: Array<{
+    id: string;
+    name: string;
+    orders: Array<{ id: string; totalCents: number; discountCents?: number; taxCents?: number; status: string; isSimulated?: boolean }>;
+    expenses: Expense[];
+    cogsRatio?: number;
+  }>
+): StoreComparisonSummary {
+  if (storesInput.length === 0) {
+    return {
+      stores: [],
+      benchmarkTotalGrossRevenueCents: 0,
+      benchmarkTotalNetProfitCents: 0,
+      benchmarkAvgMarginPct: 0,
+      topRevenueStoreName: "-",
+      topMarginStoreName: "-",
+      highestExpenseStoreName: "-",
+    };
+  }
+
+  const results: StoreFinancialComparison[] = storesInput.map((store) => {
+    const realOrders = store.orders.filter((o) => o.status === "delivered" && !o.isSimulated);
+    const simOrders = store.orders.filter((o) => o.isSimulated);
+
+    const grossRevenueCents = realOrders.reduce((acc, o) => acc + o.totalCents, 0);
+    const simulatedRevenueCents = simOrders.reduce((acc, o) => acc + o.totalCents, 0);
+    const discountsCents = realOrders.reduce((acc, o) => acc + (o.discountCents || 0), 0);
+    const taxesCents = realOrders.reduce((acc, o) => acc + (o.taxCents || 0), 0);
+    const netRevenueCents = Math.max(0, grossRevenueCents - discountsCents - taxesCents);
+
+    const ratio = store.cogsRatio ?? 0.28;
+    const cogsCents = Math.round(netRevenueCents * ratio);
+    const grossProfitCents = netRevenueCents - cogsCents;
+    const grossMarginPct = netRevenueCents > 0 ? (grossProfitCents / netRevenueCents) * 100 : 0;
+    const cogsPct = netRevenueCents > 0 ? (cogsCents / netRevenueCents) * 100 : 0;
+
+    const operatingExpensesCents = store.expenses
+      .filter((e) => !e.isSimulation && e.category !== "ingredients" && e.category !== "suppliers")
+      .reduce((acc, e) => acc + e.amountCents, 0);
+
+    const estimatedNetProfitCents = grossProfitCents - operatingExpensesCents;
+    const netMarginPct = netRevenueCents > 0 ? (estimatedNetProfitCents / netRevenueCents) * 100 : 0;
+    const averageTicketCents = realOrders.length > 0 ? Math.round(grossRevenueCents / realOrders.length) : 0;
+
+    const hasRealData = realOrders.length > 0 || store.expenses.length > 0;
+    let status: DataReliabilityStatus = "empty";
+    if (hasRealData) {
+      status = simulatedRevenueCents > grossRevenueCents ? "simulated" : "realized";
+    } else if (simulatedRevenueCents > 0) {
+      status = "simulated";
+    }
+
+    return {
+      locationId: store.id,
+      locationName: store.name,
+      orderCount: realOrders.length,
+      grossRevenueCents,
+      discountsCents,
+      taxesCents,
+      netRevenueCents,
+      cogsCents,
+      cogsPct,
+      operatingExpensesCents,
+      grossProfitCents,
+      grossMarginPct,
+      estimatedNetProfitCents,
+      netMarginPct,
+      averageTicketCents,
+      simulatedRevenueCents,
+      hasRealData,
+      status,
+      revenueRank: 1,
+      marginRank: 1,
+      netProfitRank: 1,
+      isBestPerformer: false,
+      hasHighCostAlert: cogsPct > 35 || (netRevenueCents > 0 && operatingExpensesCents / netRevenueCents > 0.45),
+      hasLowMarginAlert: netRevenueCents > 0 && netMarginPct < 10,
+    };
+  });
+
+  // Sort and assign ranks
+  const revSorted = [...results].sort((a, b) => b.grossRevenueCents - a.grossRevenueCents);
+  revSorted.forEach((item, index) => {
+    const match = results.find((r) => r.locationId === item.locationId);
+    if (match) match.revenueRank = index + 1;
+  });
+
+  const marginSorted = [...results].sort((a, b) => b.netMarginPct - a.netMarginPct);
+  marginSorted.forEach((item, index) => {
+    const match = results.find((r) => r.locationId === item.locationId);
+    if (match) match.marginRank = index + 1;
+  });
+
+  const netProfitSorted = [...results].sort((a, b) => b.estimatedNetProfitCents - a.estimatedNetProfitCents);
+  netProfitSorted.forEach((item, index) => {
+    const match = results.find((r) => r.locationId === item.locationId);
+    if (match) {
+      match.netProfitRank = index + 1;
+      if (index === 0 && match.grossRevenueCents > 0) {
+        match.isBestPerformer = true;
+      }
+    }
+  });
+
+  const expSorted = [...results].sort((a, b) => b.operatingExpensesCents - a.operatingExpensesCents);
+
+  const totalGross = results.reduce((acc, r) => acc + r.grossRevenueCents, 0);
+  const totalNetProfit = results.reduce((acc, r) => acc + r.estimatedNetProfitCents, 0);
+  const activeCount = results.filter((r) => r.hasRealData).length || 1;
+  const avgMargin = results.reduce((acc, r) => acc + r.netMarginPct, 0) / activeCount;
+
+  return {
+    stores: results,
+    benchmarkTotalGrossRevenueCents: totalGross,
+    benchmarkTotalNetProfitCents: totalNetProfit,
+    benchmarkAvgMarginPct: avgMargin,
+    topRevenueStoreName: revSorted[0]?.locationName ?? "-",
+    topMarginStoreName: marginSorted[0]?.locationName ?? "-",
+    highestExpenseStoreName: expSorted[0]?.locationName ?? "-",
+  };
 }
 
 export function formatUsd(cents: number): string {
