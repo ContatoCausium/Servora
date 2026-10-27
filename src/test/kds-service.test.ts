@@ -172,4 +172,36 @@ describe("kds-service", () => {
     const ord1 = merged.find((o) => o.id === "ord-1");
     expect(ord1?.status).toBe("in_prep");
   });
+
+  it("handles duplicate realtime events without corrupting order state", () => {
+    const initial: Order[] = [
+      {
+        id: "ord-dup-1",
+        orgId: "org-1",
+        locationId: "loc-1",
+        orderNumber: "#201",
+        type: "dine_in",
+        status: "new",
+        customer: { name: "Test Guest" },
+        items: [],
+        subtotalCents: 1200,
+        discountCents: 0,
+        taxRatePercent: 8,
+        taxCents: 96,
+        totalCents: 1296,
+        createdAt: "2026-05-10T14:00:00Z",
+        updatedAt: "2026-05-10T14:00:00Z",
+        timeline: [],
+      },
+    ];
+
+    const duplicatePayload: Order[] = [
+      { ...initial[0]!, updatedAt: "2026-05-10T14:00:00Z" },
+      { ...initial[0]!, updatedAt: "2026-05-10T14:00:00Z" },
+    ];
+
+    const result = mergeKDSOrders(initial, duplicatePayload);
+    expect(result.length).toBe(1);
+    expect(result[0]?.id).toBe("ord-dup-1");
+  });
 });

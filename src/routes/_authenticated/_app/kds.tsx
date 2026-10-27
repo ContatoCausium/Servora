@@ -35,6 +35,10 @@ const STATIONS: { id: KitchenStation | "all"; label: string }[] = [
   { id: "expo", label: "Expo" },
 ];
 
+import { supabase } from "@/integrations/supabase/client";
+import { fetchPersistedOrders, persistOrderStatusTransition } from "@/lib/orders-persistence-service";
+import { mergeKDSOrders } from "@/lib/kds-service";
+
 export function KDSPage() {
   const { t } = useTranslation("orders");
   const { org, locationId, user } = useWorkspace();
@@ -43,15 +47,88 @@ export function KDSPage() {
   const [stationFilter, setStationFilter] = useState<KitchenStation | "all">("all");
   const [nowTick, setNowTick] = useState(Date.now());
   const [audioAlerts, setAudioAlerts] = useState(true);
+  const [connectionStatus, setConnectionStatus] = useState<"connected" | "connecting" | "disconnected">("connecting");
 
-  // Refresh timer every 8 seconds for real-time timers
+  const refreshPersistedData = async () => {
+    try {
+      const res = await fetchPersistedOrders({
+        orgId: org.id,
+        locationId: locationId === "all" ? undefined : locationId,
+        limit: 100,
+      });
+      if (res && res.orders.length > 0) {
+        setOrders((prev) => mergeKDSOrders(prev, res.orders));
+      }
+    } catch (err) {
+      console.error("[KDS] Fetch error:", err);
+    }
+  };
+
+  // Initial fetch from database + 15s safety backup sync
   useEffect(() => {
+    void refreshPersistedData();
     const interval = setInterval(() => {
       setNowTick(Date.now());
-      setOrders(listOrders(org.id, locationId));
-    }, 8000);
+      void refreshPersistedData();
+    }, 15000);
     return () => clearInterval(interval);
   }, [org.id, locationId]);
+
+  // Realtime subscription with explicit unmount cleanup
+  useEffect(() => {
+    let isMounted = true;
+    setConnectionStatus("connecting");
+
+    const channelName = `kds-orders-${org.id}-${locationId}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orders",
+          filter: `org_id=eq.${org.id}`,
+        },
+        async (payload) => {
+          if (!isMounted) return;
+          // Target location check
+          const row = payload.new as any;
+          if (locationId !== "all" && row && row.location_id && row.location_id !== locationId) {
+            return;
+          }
+
+          if (payload.eventType === "INSERT" && audioAlerts && typeof window !== "undefined") {
+            try {
+              const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+              const osc = ctx.createOscillator();
+              osc.type = "sine";
+              osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+              osc.connect(ctx.destination);
+              osc.start();
+              osc.stop(ctx.currentTime + 0.18);
+            } catch {}
+          }
+
+          await refreshPersistedData();
+        }
+      )
+      .subscribe((status) => {
+        if (!isMounted) return;
+        if (status === "SUBSCRIBED") {
+          setConnectionStatus("connected");
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setConnectionStatus("disconnected");
+        } else if (status === "CLOSED") {
+          setConnectionStatus("disconnected");
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [org.id, locationId, audioAlerts]);
 
   const filteredOrders = useMemo(() => {
     let list = listOrders(org.id, locationId);
@@ -68,11 +145,19 @@ export function KDSPage() {
     };
   }, [filteredOrders]);
 
-  const handleStatusChange = (orderId: string, next: OrderStatus) => {
+  const handleStatusChange = async (orderId: string, next: OrderStatus) => {
+    // Optimistic local update
     const updated = updateOrderStatus(org.id, orderId, next, staffName, `Updated via KDS`);
     if (updated) {
-      setOrders(listOrders(org.id, locationId));
+      setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status: next, updatedAt: new Date().toISOString() } : o)));
       toast.success(`Ticket #${updated.orderNumber} moved to ${next}`);
+    }
+
+    // Backend persistence
+    const res = await persistOrderStatusTransition(orderId, next);
+    if (!res.success) {
+      toast.error(`Database sync failed: ${res.error || "Unknown error"}`);
+      await refreshPersistedData();
     }
   };
 
@@ -111,9 +196,18 @@ export function KDSPage() {
             <div>
               <h1 className="font-bold text-base leading-none flex items-center gap-2">
                 Kitchen Display System (KDS)
-                <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-50/50 text-[10px]">
-                  {t("simulatedBadge")}
-                </Badge>
+                <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                  connectionStatus === "connected"
+                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+                    : connectionStatus === "connecting"
+                    ? "bg-amber-500/10 text-amber-600 border-amber-500/30"
+                    : "bg-destructive/10 text-destructive border-destructive/30"
+                }`}>
+                  <span className={`size-1.5 rounded-full ${
+                    connectionStatus === "connected" ? "bg-emerald-500" : connectionStatus === "connecting" ? "bg-amber-500 animate-pulse" : "bg-destructive"
+                  }`} />
+                  {connectionStatus === "connected" ? "Live Realtime" : connectionStatus === "connecting" ? "Connecting..." : "Offline"}
+                </span>
               </h1>
               <p className="text-xs text-muted-foreground mt-0.5">Station-routed production display with delay tracking</p>
             </div>
