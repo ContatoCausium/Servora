@@ -244,6 +244,17 @@ export async function persistOrderStatusTransition(
   status: OrderStatus
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    if (status === "cancelled") {
+      // ponytail: cancel_order_with_reversal restores inventory and deletes POS revenue ledger
+      const { error: cancelErr } = await supabase.rpc("cancel_order_with_reversal", {
+        _order_id: orderId,
+        _reason: "Cancelled with automatic recipe inventory and finance reversal",
+      });
+      if (!cancelErr) {
+        return { success: true };
+      }
+    }
+
     // ponytail: try update_order_status RPC first for audit trail trigger and isolation check
     const { error: rpcErr } = await supabase.rpc("update_order_status", {
       _order_id: orderId,

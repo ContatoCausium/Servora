@@ -387,9 +387,9 @@ export async function submitPosSaleToBackend(session: POSSession): Promise<{ suc
       notes: item.notes || null,
     }));
 
-    // ponytail: uses create_pos_sale for backend idempotency via client_order_id
+    // ponytail: uses finalize_pos_sale_atomic to consume recipe inventory and write revenue atomically
     const clientOrderId = `pos-${session.id}`;
-    const { data, error } = await supabase.rpc("create_pos_sale", {
+    const { data, error } = await supabase.rpc("finalize_pos_sale_atomic", {
       _org_id: session.orgId,
       _location_id: session.locationId,
       _type: session.orderType,
@@ -404,6 +404,7 @@ export async function submitPosSaleToBackend(session: POSSession): Promise<{ suc
       _items: itemsPayload,
       _is_simulation: false,
       _client_order_id: clientOrderId,
+      _payment_method: session.paymentMethod || 'cash',
     });
     if (error) {
       return { success: false, error: error.message };
