@@ -21,6 +21,7 @@ import {
   listExpenses, saveExpense, deleteExpense, updateExpenseStatus,
   computeFinanceSummary, generateMonthlyTrend, buildCashFlowTimeline, formatUsd,
   calculateDreStatement, calculateProductMargins, calculateCategoryMargins,
+  compareStoreFinancials,
   type Expense, type ExpenseCategory, type ExpenseRecurrence, type ExpenseStatus,
   type CashFlowGranularity
 } from "@/lib/finance-service";
@@ -56,8 +57,9 @@ export function FinancePage() {
   const [categoryFilter, setCategoryFilter] = useState<ExpenseCategory | "all">("all");
   const [recurrenceFilter, setRecurrenceFilter] = useState<ExpenseRecurrence | "all">("all");
   const [search, setSearch] = useState("");
-  const [viewTab, setViewTab] = useState<"overview" | "dre" | "cashflow" | "payables">("overview");
+  const [viewTab, setViewTab] = useState<"overview" | "comparison" | "dre" | "cashflow" | "payables">("overview");
   const [cfGranularity, setCfGranularity] = useState<CashFlowGranularity>("monthly");
+  const [selectedLocationIds, setSelectedLocationIds] = useState<string[]>(() => org.locations.map((l) => l.id));
 
   // Modal states
   const [formOpen, setFormOpen] = useState(false);
@@ -127,6 +129,34 @@ export function FinancePage() {
     const safeCogs = totalCogsCents > 0 ? totalCogsCents : Math.round(baselineRevenue * 0.29);
     return calculateDreStatement(baselineRevenue, safeDiscounts, safeTaxes, safeCogs, expenses, simulatedSalesCents);
   }, [realSalesCents, taxesCents, discountsCents, totalCogsCents, expenses, simulatedSalesCents]);
+
+  // Multi-Store Comparison calculations
+  const allOrgExpenses = useMemo(() => listExpenses(org.id), [org.id]);
+  const allOrgOrders = useMemo(() => listOrders(org.id), [org.id]);
+
+  const storeComparison = useMemo(() => {
+    const activeLocations = org.locations.filter((l) =>
+      selectedLocationIds.length === 0 || selectedLocationIds.includes(l.id)
+    );
+    const inputs = activeLocations.map((loc) => {
+      const locOrders = allOrgOrders.filter((o) => o.locationId === loc.id);
+      const locExpenses = allOrgExpenses.filter((e) => e.locationId === loc.id || e.locationId === "all");
+      return {
+        id: loc.id,
+        name: loc.name,
+        orders: locOrders.map((o) => ({
+          id: o.id,
+          totalCents: o.totalCents,
+          discountCents: o.discountCents,
+          taxCents: o.taxCents,
+          status: o.status,
+          isSimulated: o.isSimulated,
+        })),
+        expenses: locExpenses,
+      };
+    });
+    return compareStoreFinancials(inputs);
+  }, [org.locations, selectedLocationIds, allOrgOrders, allOrgExpenses]);
 
   // Finance metrics
   const summary = useMemo(() => {
@@ -347,6 +377,15 @@ export function FinancePage() {
         </button>
         <button
           type="button"
+          onClick={() => setViewTab("comparison")}
+          className={`px-3 py-1.5 rounded-md transition-colors ${
+            viewTab === "comparison" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted"
+          }`}
+        >
+          {t("tabs.comparison")}
+        </button>
+        <button
+          type="button"
           onClick={() => setViewTab("dre")}
           className={`px-3 py-1.5 rounded-md transition-colors ${
             viewTab === "dre" ? "bg-primary text-primary-foreground font-semibold" : "text-muted-foreground hover:bg-muted"
@@ -373,6 +412,146 @@ export function FinancePage() {
           {t("tabs.payables")}
         </button>
       </div>
+
+      {/* Multi-Store Comparison View */}
+      {viewTab === "comparison" && (
+        <div className="space-y-6">
+          <Panel title={t("comparison.title")} subtitle={t("comparison.subtitle")}>
+            {/* Store Selection Filters */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-medium text-muted-foreground">{t("comparison.filterStores")}:</span>
+                {org.locations.map((loc) => {
+                  const isChecked = selectedLocationIds.includes(loc.id);
+                  return (
+                    <button
+                      key={loc.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedLocationIds((prev) =>
+                          prev.includes(loc.id) ? prev.filter((id) => id !== loc.id) : [...prev, loc.id]
+                        );
+                      }}
+                      className={`text-xs px-2.5 py-1 rounded-md border transition-colors ${
+                        isChecked
+                          ? "bg-primary text-primary-foreground border-primary font-medium shadow-xs"
+                          : "bg-card text-muted-foreground border-border hover:bg-muted"
+                      }`}
+                    >
+                      {loc.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                <span>{storeComparison.stores.length} {t("comparison.storesAnalyzed")}</span>
+              </div>
+            </div>
+
+            {/* Benchmarks Header Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 pb-2">
+              <div className="rounded-lg border bg-muted/10 p-3.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{t("comparison.topRevenueStore")}</p>
+                <p className="text-lg font-bold mt-1 text-foreground">{storeComparison.topRevenueStoreName}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Total: {formatUsd(storeComparison.benchmarkTotalGrossRevenueCents)}</p>
+              </div>
+              <div className="rounded-lg border bg-emerald-500/5 border-emerald-500/20 p-3.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-emerald-600">{t("comparison.topMarginStore")}</p>
+                <p className="text-lg font-bold mt-1 text-emerald-600">{storeComparison.topMarginStoreName}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Benchmark Avg: {storeComparison.benchmarkAvgMarginPct.toFixed(1)}%</p>
+              </div>
+              <div className="rounded-lg border bg-amber-500/5 border-amber-500/20 p-3.5">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-amber-600">{t("comparison.highestExpenseStore")}</p>
+                <p className="text-lg font-bold mt-1 text-foreground">{storeComparison.highestExpenseStoreName}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Total Net: {formatUsd(storeComparison.benchmarkTotalNetProfitCents)}</p>
+              </div>
+            </div>
+
+            {/* Comparison Chart */}
+            <div className="h-[260px] w-full pt-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={storeComparison.stores} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 3" />
+                  <XAxis dataKey="locationName" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                  <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickFormatter={(v) => `$${v / 100000}k`} />
+                  <Tooltip
+                    contentStyle={{ background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                    formatter={(val: number) => [formatUsd(val), "USD"]}
+                  />
+                  <Bar dataKey="grossRevenueCents" fill="var(--primary)" radius={[4, 4, 0, 0]} name="Gross Revenue" />
+                  <Bar dataKey="estimatedNetProfitCents" fill="#10b981" radius={[4, 4, 0, 0]} name="Net Profit" />
+                  <Bar dataKey="operatingExpensesCents" fill="#ef4444" radius={[4, 4, 0, 0]} name="OpEx" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Comparison Table */}
+            <div className="mt-6 overflow-x-auto rounded-md border">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-muted/50 border-b text-muted-foreground uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th className="p-3">{t("comparison.store")}</th>
+                    <th className="p-3 text-center">{t("comparison.rank")}</th>
+                    <th className="p-3 text-right">{t("comparison.orders")}</th>
+                    <th className="p-3 text-right">{t("comparison.ticket")}</th>
+                    <th className="p-3 text-right">{t("comparison.grossRevenue")}</th>
+                    <th className="p-3 text-right">{t("comparison.cogs")}</th>
+                    <th className="p-3 text-right">{t("comparison.opEx")}</th>
+                    <th className="p-3 text-right">{t("comparison.netProfit")}</th>
+                    <th className="p-3 text-right">{t("comparison.netMargin")}</th>
+                    <th className="p-3">{t("comparison.status")}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {storeComparison.stores.map((s) => (
+                    <tr key={s.locationId} className="hover:bg-muted/30 transition-colors">
+                      <td className="p-3 font-semibold text-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <span>{s.locationName}</span>
+                          {s.isBestPerformer && (
+                            <Badge variant="default" className="text-[9px] bg-emerald-600">
+                              {t("comparison.topPerformer")}
+                            </Badge>
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-3 text-center tabular font-semibold text-muted-foreground">
+                        #{s.netProfitRank}
+                      </td>
+                      <td className="p-3 text-right tabular">{s.orderCount}</td>
+                      <td className="p-3 text-right tabular">{formatUsd(s.averageTicketCents)}</td>
+                      <td className="p-3 text-right tabular font-medium text-foreground">{formatUsd(s.grossRevenueCents)}</td>
+                      <td className="p-3 text-right tabular text-muted-foreground">{formatUsd(s.cogsCents)} ({s.cogsPct.toFixed(0)}%)</td>
+                      <td className="p-3 text-right tabular text-destructive">{formatUsd(s.operatingExpensesCents)}</td>
+                      <td className="p-3 text-right tabular font-bold text-foreground">{formatUsd(s.estimatedNetProfitCents)}</td>
+                      <td className="p-3 text-right tabular font-bold">
+                        <span className={s.netMarginPct < 10 ? "text-amber-600" : "text-emerald-600"}>
+                          {s.netMarginPct.toFixed(1)}%
+                        </span>
+                      </td>
+                      <td className="p-3">
+                        {s.status === "realized" ? (
+                          <Badge variant="secondary" className="text-emerald-600 bg-emerald-500/10 text-[10px]">
+                            {t("comparison.statusRealized")}
+                          </Badge>
+                        ) : s.status === "simulated" ? (
+                          <Badge variant="outline" className="border-amber-500 text-amber-600 text-[10px]">
+                            {t("comparison.statusSimulated")}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-muted-foreground text-[10px]">
+                            {t("comparison.statusEmpty")}
+                          </Badge>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
+        </div>
+      )}
 
       {/* DRE & Profitability View */}
       {viewTab === "dre" && (

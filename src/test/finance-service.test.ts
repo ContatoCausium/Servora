@@ -4,6 +4,7 @@ import {
   calculateProductMargins,
   calculateCategoryMargins,
   computeFinanceSummary,
+  compareStoreFinancials,
   formatUsd,
   type Expense,
 } from "@/lib/finance-service";
@@ -132,5 +133,54 @@ describe("Finance Service - DRE, Margins & Cash Accounting", () => {
     expect(formatUsd(125000)).toBe("$1,250.00");
     expect(formatUsd(0)).toBe("$0.00");
     expect(formatUsd(-5000)).toBe("-$50.00");
+  });
+
+  it("computes multi-store financial comparisons with ranks and benchmarks", () => {
+    const storeA = {
+      id: "loc-1",
+      name: "Store Downtown",
+      orders: [
+        { id: "o1", totalCents: 1000000, discountCents: 0, taxCents: 50000, status: "delivered", isSimulated: false },
+        { id: "o2", totalCents: 500000, discountCents: 0, taxCents: 25000, status: "delivered", isSimulated: false },
+      ],
+      expenses: [
+        { id: "e1", orgId: "test", locationId: "loc-1", category: "rent" as const, recurrence: "fixed" as const, status: "paid" as const, description: "Rent", amountCents: 300000, currency: "usd" as const, dueDate: "2025-05-01", competencyDate: "2025-05-01", responsiblePerson: "Mgr", isSimulation: false, createdAt: "2025-05-01", updatedAt: "2025-05-01" },
+      ],
+    };
+
+    const storeB = {
+      id: "loc-2",
+      name: "Store Midtown",
+      orders: [
+        { id: "o3", totalCents: 2000000, discountCents: 50000, taxCents: 100000, status: "delivered", isSimulated: false },
+      ],
+      expenses: [
+        { id: "e2", orgId: "test", locationId: "loc-2", category: "utilities" as const, recurrence: "fixed" as const, status: "paid" as const, description: "Electric", amountCents: 200000, currency: "usd" as const, dueDate: "2025-05-01", competencyDate: "2025-05-01", responsiblePerson: "Mgr", isSimulation: false, createdAt: "2025-05-01", updatedAt: "2025-05-01" },
+      ],
+    };
+
+    const comparison = compareStoreFinancials([storeA, storeB]);
+    expect(comparison.stores).toHaveLength(2);
+    expect(comparison.benchmarkTotalGrossRevenueCents).toBe(3500000);
+    expect(comparison.topRevenueStoreName).toBe("Store Midtown");
+
+    const midtown = comparison.stores.find((s) => s.locationId === "loc-2");
+    expect(midtown?.revenueRank).toBe(1);
+    expect(midtown?.netProfitRank).toBe(1);
+    expect(midtown?.isBestPerformer).toBe(true);
+  });
+
+  it("handles empty and inactive stores safely in multi-store comparison", () => {
+    const emptyStore = {
+      id: "loc-empty",
+      name: "Unopened Branch",
+      orders: [],
+      expenses: [],
+    };
+    const comparison = compareStoreFinancials([emptyStore]);
+    expect(comparison.stores).toHaveLength(1);
+    expect(comparison.stores[0]?.status).toBe("empty");
+    expect(comparison.stores[0]?.grossRevenueCents).toBe(0);
+    expect(comparison.stores[0]?.netProfitRank).toBe(1);
   });
 });

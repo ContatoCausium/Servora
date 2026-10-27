@@ -3,9 +3,33 @@
   "subtitle": "Painel executivo, categorização de despesas fixas e variáveis em USD, contas a pagar e DRE operacional estimado.",
   "tabs": {
     "overview": "Dashboard Executivo",
+    "comparison": "Comparativo de Lojas",
     "dre": "DRE & Margens",
     "cashflow": "Fluxo de Caixa",
     "payables": "Contas a Pagar e Receber"
+  },
+  "comparison": {
+    "title": "Comparativo Financeiro Entre Lojas",
+    "subtitle": "Análise comparativa de rentabilidade entre unidades americanas: receita bruta, CMV, OpEx, margem líquida e ranking em USD.",
+    "filterStores": "Unidades",
+    "storesAnalyzed": "unidades selecionadas",
+    "topRevenueStore": "Maior Faturamento",
+    "topMarginStore": "Maior Margem Líquida",
+    "highestExpenseStore": "Maior Despesa Operacional",
+    "store": "Unidade",
+    "rank": "Classificação",
+    "orders": "Pedidos",
+    "ticket": "Ticket Médio",
+    "grossRevenue": "Faturamento Bruto",
+    "cogs": "CMV (%)",
+    "opEx": "Despesas (OpEx)",
+    "netProfit": "Lucro Líquido",
+    "netMargin": "Margem Líquida",
+    "status": "Consistência",
+    "statusRealized": "Realizado",
+    "statusSimulated": "Simulado",
+    "statusEmpty": "Sem Dados",
+    "topPerformer": "Destaque"
   },
   "dre": {
     "title": "Demonstrativo de Resultados do Exercício (DRE)",

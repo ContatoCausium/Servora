@@ -3,9 +3,33 @@
   "subtitle": "Executive financial management, USD expense control, real vs simulated revenue segregation, cash flow, and management DRE.",
   "tabs": {
     "overview": "Executive Overview",
+    "comparison": "Store Comparison",
     "dre": "P&L / DRE Statement",
     "cashflow": "Cash Flow Statement",
     "payables": "Accounts Payable & Receivable"
+  },
+  "comparison": {
+    "title": "Multi-Store Financial Comparison",
+    "subtitle": "Direct performance comparison across restaurant units: revenue, COGS, OpEx, profit margins, and rankings in USD.",
+    "filterStores": "Locations",
+    "storesAnalyzed": "units selected",
+    "topRevenueStore": "Top Revenue Unit",
+    "topMarginStore": "Highest Margin Unit",
+    "highestExpenseStore": "Highest Operating Expense",
+    "store": "Store",
+    "rank": "Rank",
+    "orders": "Orders",
+    "ticket": "Avg Ticket",
+    "grossRevenue": "Gross Revenue",
+    "cogs": "COGS (%)",
+    "opEx": "OpEx",
+    "netProfit": "Net Profit",
+    "netMargin": "Net Margin",
+    "status": "Data Status",
+    "statusRealized": "Realized",
+    "statusSimulated": "Simulated",
+    "statusEmpty": "No Data",
+    "topPerformer": "Top Leader"
   },
   "dre": {
     "title": "Income Statement (P&L / DRE)",
