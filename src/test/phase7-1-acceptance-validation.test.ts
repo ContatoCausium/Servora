@@ -77,6 +77,13 @@ describe("Phase 7.1: POS E2E Acceptance Flow Database Function", () => {
     );
 
     if (flowResult) {
+      expect(flowResult.idempotence_verified).toBe(true);
+      expect(flowResult.stock_deduction_verified).toBe(true);
+      expect(flowResult.no_recipe_handled_safely).toBe(true);
+      expect(flowResult.consumption_logs_cleared).toBe(true);
+    }
+
+    if (flowResult) {
       expect(flowResult.stock_reversal_verified).toBe(true);
       expect(flowResult.revenue_recorded_and_reversed).toBe(true);
       expect(flowResult.dre_reflected_correctly).toBe(true);
