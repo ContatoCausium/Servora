@@ -150,18 +150,29 @@ export function POSPage() {
     setCheckoutOpen(true);
   };
 
-  const handleCompleteSale = () => {
+  const [submittingSale, setSubmittingSale] = useState(false);
+
+  const handleCompleteSale = async () => {
+    if (submittingSale) return;
     const centsTendered = Math.round(parseFloat(tenderedInput || "0") * 100);
     const paid = simulatePayment(session, payMethod, centsTendered);
     if (payMethod === "cash" && centsTendered < paid.totalCents) {
       toast.error("Amount tendered is less than total amount");
       return;
     }
-    const finalized = finalizeSale(paid);
-    setReceiptSession(finalized);
-    setCheckoutOpen(false);
-    setSession(getPOSSession(org.id, activeLocId, cashierName));
-    toast.success("Sale completed successfully!");
+    setSubmittingSale(true);
+    try {
+      const idemKey = `pos-tx-${session.id}-${Date.now()}`;
+      const finalized = finalizeSale(paid, idemKey);
+      setReceiptSession(finalized);
+      setCheckoutOpen(false);
+      setSession(getPOSSession(org.id, activeLocId, cashierName));
+      toast.success("Venda finalizada com confirmação e persistência registrada!");
+    } catch (err) {
+      toast.error("Falha ao registrar venda. Verifique os dados do pedido.");
+    } finally {
+      setSubmittingSale(false);
+    }
   };
 
   const changeDueCents = receiptSession
@@ -235,7 +246,8 @@ export function POSPage() {
           {filteredItems.length === 0 && (
             <div className="col-span-full flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
               <ShoppingBag className="size-10 mb-2 opacity-40" />
-              <p>No products match your criteria</p>
+              <p className="font-medium text-sm text-foreground">Cardápio operacional sem itens cadastrados</p>
+              <p className="text-xs text-muted-foreground mt-1">Acesse a página de Cardápio para cadastrar categorias e produtos ativos para esta loja.</p>
             </div>
           )}
         </div>
@@ -405,8 +417,10 @@ export function POSPage() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCheckoutOpen(false)}>Cancel</Button>
-            <Button onClick={handleCompleteSale}>Confirm Payment</Button>
+            <Button variant="outline" disabled={submittingSale} onClick={() => setCheckoutOpen(false)}>Cancel</Button>
+            <Button disabled={submittingSale} onClick={handleCompleteSale}>
+              {submittingSale ? "Confirmando..." : "Confirm Payment"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

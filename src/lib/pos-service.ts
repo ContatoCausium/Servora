@@ -59,6 +59,7 @@ export interface CompletedPosSale {
   changeCents: number;
   createdAt: string;
   isSimulated: boolean;
+  backendOrderId?: string;
 }
 
 const SUSPENDED_STORAGE_PREFIX = "servora.pos.suspended.";
@@ -350,4 +351,33 @@ export function finalizeSale(session: POSSession): POSSession {
     ...session,
     completedAt: completed.createdAt,
   };
+}
+
+export async function submitPosSaleToBackend(session: POSSession): Promise<{ success: boolean; orderId?: string; error?: string }> {
+  try {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { data, error } = await supabase.rpc("create_restaurant_order", {
+      p_org_id: session.orgId,
+      p_location_id: session.locationId,
+      p_order_type: session.orderType,
+      p_customer_name: session.customerName || "POS Walk-in Guest",
+      p_items: session.cart.map((item) => ({
+        product_id: item.productId,
+        quantity: item.quantity,
+        unit_price_cents: item.basePriceCents,
+        modifiers: item.modifiers || [],
+        notes: item.notes || "",
+      })),
+      p_discount_cents: session.discountCents,
+      p_tax_cents: session.taxCents,
+      p_payment_method: session.paymentMethod || "cash",
+    });
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    const res = data as any;
+    return { success: true, orderId: res?.id || (typeof res === "string" ? res : undefined) };
+  } catch (err) {
+    return { success: false, error: (err as Error).message };
+  }
 }

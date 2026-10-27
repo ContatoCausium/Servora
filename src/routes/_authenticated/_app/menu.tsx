@@ -273,12 +273,14 @@ function MenuPage() {
       {filteredItems.length === 0 ? (
         <Panel className="p-12 text-center">
           <BookOpenText className="mx-auto size-12 text-muted-foreground/50" />
-          <h3 className="mt-4 text-base font-semibold">{t("empty.title")}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{t("empty.body")}</p>
-          <Button size="sm" onClick={openNewItem} className="mt-4">
-            <Plus className="mr-1.5 size-4" />
-            {t("empty.action")}
-          </Button>
+          <h3 className="mt-4 text-base font-semibold">Nenhum produto cadastrado no cardápio</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Cadastre categorias e itens reais no banco de dados para disponibilizar no POS e atendimento.</p>
+          {canManage && (
+            <Button size="sm" onClick={openNewItem} className="mt-4">
+              <Plus className="mr-1.5 size-4" />
+              {t("newProduct")}
+            </Button>
+          )}
         </Panel>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

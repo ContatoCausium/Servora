@@ -676,6 +676,19 @@ export type Database = {
         }
         Returns: string
       }
+      create_restaurant_order: {
+        Args: {
+          p_customer_name?: string
+          p_discount_cents?: number
+          p_items: Json
+          p_location_id: string
+          p_org_id: string
+          p_order_type?: string
+          p_payment_method?: string
+          p_tax_cents?: number
+        }
+        Returns: Json
+      }
       create_test_restaurant: {
         Args: {
           _company_address: string
