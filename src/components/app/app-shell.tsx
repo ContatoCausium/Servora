@@ -29,14 +29,15 @@ import {
 } from "@/components/ui/command";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type NavTo = "/" | "/pos" | "/kds" | "/menu" | "/inventory" | "/locations" | "/team" | "/settings/branding" | "/settings/billing";
+type NavTo = "/" | "/pos" | "/kds" | "/menu" | "/inventory" | "/finance" | "/locations" | "/team" | "/settings/branding" | "/settings/billing";
 // Curated icon set: one stroke weight, restaurant-operations semantics.
-const NAV: { to: NavTo; key: string; icon: typeof Store }[] = [
+const NAV: { to: NavTo; key: string; icon: typeof Store; managerOnly?: boolean }[] = [
   { to: "/", key: "overview", icon: Gauge },
   { to: "/pos", key: "pos", icon: MonitorSmartphone },
   { to: "/kds", key: "kds", icon: CookingPot },
   { to: "/menu", key: "menu", icon: BookOpenText },
   { to: "/inventory", key: "inventory", icon: Boxes },
+  { to: "/finance", key: "finance", icon: Landmark, managerOnly: true },
   { to: "/locations", key: "locations", icon: MapPinned },
   { to: "/team", key: "employees", icon: UsersRound },
   { to: "/settings/branding", key: "branding", icon: SwatchBook },
@@ -45,7 +46,6 @@ const NAV: { to: NavTo; key: string; icon: typeof Store }[] = [
 const UPCOMING: { key: string; icon: typeof Store }[] = [
   { key: "liveOps", icon: Activity },
   { key: "orders", icon: ReceiptText },
-  { key: "finance", icon: Landmark },
   { key: "analytics", icon: ChartNoAxesCombined },
 ];
 
@@ -57,12 +57,13 @@ function useActive() {
 function SidebarNav({ collapsed, onNavigate }: { collapsed?: boolean; onNavigate?: () => void }) {
   const { t } = useTranslation();
   const isActive = useActive();
-  const { isPlatformAdmin } = useWorkspace();
+  const { isPlatformAdmin, role } = useWorkspace();
+  const isStaff = role === "staff";
   return (
     <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4" aria-label={t("a11y.mainNav")}>
       <div className="flex flex-col gap-0.5">
         {!collapsed && <p className="eyebrow px-2 pb-1.5">{t("nav.workspace")}</p>}
-        {NAV.map(({ to, key, icon: Icon }) => {
+        {NAV.filter((item) => !(item.managerOnly && isStaff)).map(({ to, key, icon: Icon }) => {
           const active = isActive(to);
           const link = (
             <Link
