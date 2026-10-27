@@ -64,6 +64,8 @@ describe("Phase 7.1: POS E2E Acceptance Flow Database Function", () => {
     }
 
     // 2. Call real RPC function if present on the database
+    // Explicit validation that target is strictly a demo/test organization
+    expect(isolatedOrg.is_demo).toBe(true);
     const { data: flowResult, error: flowErr } = await (supabase.rpc as any)(
       "validate_pos_e2e_acceptance_flow",
       {
