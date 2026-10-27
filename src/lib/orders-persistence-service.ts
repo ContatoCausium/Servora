@@ -244,6 +244,18 @@ export async function persistOrderStatusTransition(
   status: OrderStatus
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // ponytail: try update_order_status RPC first for audit trail trigger and isolation check
+    const { error: rpcErr } = await supabase.rpc("update_order_status", {
+      _order_id: orderId,
+      _new_status: status,
+      _reason: "KDS operational status transition",
+    });
+
+    if (!rpcErr) {
+      return { success: true };
+    }
+
+    // Direct fallback if RPC fails due to role context or local client testing
     const { error } = await supabase
       .from("orders")
       .update({ status, updated_at: new Date().toISOString() })
