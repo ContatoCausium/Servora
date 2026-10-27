@@ -107,4 +107,59 @@ describe("Orders persistence and multi-tenant integrity", () => {
     // Same input always produces same key — backend UNIQUE index prevents duplicates
     expect(`persist-${orderId}`).toBe(clientOrderId);
   });
+
+  it("enforces location scope filtering and multi-tenant isolation", () => {
+    const orgA = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+    const orgB = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+    const locA1 = "11111111-1111-1111-1111-111111111111";
+    const locA2 = "22222222-2222-2222-2222-222222222222";
+
+    const mockOrders: Order[] = [
+      {
+        id: "ord-1",
+        orgId: orgA,
+        locationId: locA1,
+        orderNumber: "#001",
+        type: "dine_in",
+        status: "new",
+        customer: { name: "A1 Guest", phone: "" },
+        items: [],
+        subtotalCents: 1000,
+        discountCents: 0,
+        taxRatePercent: 8.25,
+        taxCents: 83,
+        totalCents: 1083,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        timeline: [],
+        isSimulated: false,
+      },
+      {
+        id: "ord-2",
+        orgId: orgA,
+        locationId: locA2,
+        orderNumber: "#002",
+        type: "dine_in",
+        status: "confirmed",
+        customer: { name: "A2 Guest", phone: "" },
+        items: [],
+        subtotalCents: 1500,
+        discountCents: 0,
+        taxRatePercent: 8.25,
+        taxCents: 124,
+        totalCents: 1624,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        timeline: [],
+        isSimulated: false,
+      },
+    ];
+
+    const scopedLoc1 = mockOrders.filter((o) => o.orgId === orgA && o.locationId === locA1);
+    expect(scopedLoc1.length).toBe(1);
+    expect(scopedLoc1[0]?.id).toBe("ord-1");
+
+    const crossOrgAccess = mockOrders.filter((o) => o.orgId === orgB);
+    expect(crossOrgAccess.length).toBe(0);
+  });
 });

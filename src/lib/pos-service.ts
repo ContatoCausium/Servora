@@ -358,6 +358,18 @@ export function finalizeSale(session: POSSession): POSSession {
   };
 }
 
+export async function finalizeAndPersistSale(
+  session: POSSession
+): Promise<{ session: POSSession; orderId?: string; error?: string }> {
+  const completed = finalizeSale(session);
+  const res = await submitPosSaleToBackend(session);
+  return {
+    session: completed,
+    orderId: res.orderId,
+    error: res.error,
+  };
+}
+
 export async function submitPosSaleToBackend(session: POSSession): Promise<{ success: boolean; orderId?: string; error?: string }> {
   try {
     const { supabase } = await import("@/integrations/supabase/client");

@@ -169,7 +169,7 @@ export async function persistOrderToSupabase(
     }));
 
     // ponytail: uses create_pos_sale for backend idempotency via client_order_id
-    const clientOrderId = `persist-${order.id}`;
+    const clientOrderId = order.id ? `persist-${order.id}` : null;
     const { data: rpcOrderId, error: rpcErr } = await supabase.rpc("create_pos_sale", {
       _org_id: orgId,
       _location_id: order.locationId,
