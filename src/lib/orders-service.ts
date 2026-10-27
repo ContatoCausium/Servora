@@ -290,6 +290,11 @@ export function updateOrderStatus(
   };
 
   saveOrder(orgId, updated);
+  if (!target.isSimulated && typeof window !== "undefined") {
+    import("./orders-persistence-service").then(({ persistOrderStatusTransition }) => {
+      void persistOrderStatusTransition(orderId, newStatus);
+    }).catch(() => {});
+  }
   return updated;
 }
 

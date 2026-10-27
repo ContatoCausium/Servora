@@ -163,9 +163,14 @@ export function recordCompletedSale(
     isSimulated: true,
   };
 
-  saveOrder(orgId, createdOrder);
-  return { posHistory, createdOrder };
-}
+    saveOrder(orgId, createdOrder);
+    if (typeof window !== "undefined") {
+      import("./orders-persistence-service").then(({ persistOrderToSupabase }) => {
+        void persistOrderToSupabase(orgId, createdOrder);
+      }).catch(() => {});
+    }
+    return { posHistory, createdOrder };
+  }
 
 export function buildCartItem(
   product: MenuItem,
