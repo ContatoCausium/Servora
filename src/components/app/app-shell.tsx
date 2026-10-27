@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/command";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-type NavTo = "/" | "/pos" | "/kds" | "/menu" | "/locations" | "/settings/branding" | "/team" | "/settings/billing";
+type NavTo = "/" | "/pos" | "/kds" | "/menu" | "/locations" | "/team" | "/settings/branding" | "/settings/billing";
 // Curated icon set: one stroke weight, restaurant-operations semantics.
 const NAV: { to: NavTo; key: string; icon: typeof Store }[] = [
   { to: "/", key: "overview", icon: Gauge },
