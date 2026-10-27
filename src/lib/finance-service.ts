@@ -123,6 +123,7 @@ export interface DreStatement {
   taxesCents: number;
   netRevenueCents: number;
   cogsCents: number;
+  cogsPct: number;
   grossProfitCents: number;
   grossMarginPct: number;
   operatingExpensesCents: number;
@@ -474,6 +475,7 @@ export function calculateDreStatement(
   const safeCogsCents = Math.max(0, cogsCents);
   const grossProfitCents = netRevenueCents - safeCogsCents;
   const grossMarginPct = netRevenueCents > 0 ? (grossProfitCents / netRevenueCents) * 100 : 0;
+  const cogsPct = netRevenueCents > 0 ? (safeCogsCents / netRevenueCents) * 100 : 0;
 
   let fixedExp = 0;
   let varExp = 0;
@@ -510,6 +512,7 @@ export function calculateDreStatement(
     cogsCents: safeCogsCents,
     grossProfitCents,
     grossMarginPct,
+    cogsPct,
     operatingExpensesCents,
     fixedExpensesCents: fixedExp,
     variableExpensesCents: varExp,

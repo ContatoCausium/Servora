@@ -61,8 +61,11 @@
     "payroll": "Folha de Pagamento & Encargos",
     "utilities": "Energia, Água & Gás",
     "ingredients": "Insumos & Perecíveis Diretos",
+    "cogs": "Custo de Mercadorias (CMV)",
     "maintenance": "Manutenção & Reparos",
     "marketing": "Marketing & Publicidade",
+    "insurance": "Seguros Comerciais",
+    "software": "Tecnologia & Softwares",
     "other": "Despesas Administrativas"
   },
   "recurrence": {
