@@ -168,8 +168,9 @@ export async function persistOrderToSupabase(
       notes: it.notes || null,
     }));
 
-    // Tenta persistencia atomica via RPC create_restaurant_order
-    const { data: rpcOrderId, error: rpcErr } = await supabase.rpc("create_restaurant_order", {
+    // ponytail: uses create_pos_sale for backend idempotency via client_order_id
+    const clientOrderId = `persist-${order.id}`;
+    const { data: rpcOrderId, error: rpcErr } = await supabase.rpc("create_pos_sale", {
       _org_id: orgId,
       _location_id: order.locationId,
       _type: order.type,
@@ -183,6 +184,7 @@ export async function persistOrderToSupabase(
       _tax_rate_basis_points: Math.round((order.taxRatePercent || 8.25) * 100),
       _items: payloadItems,
       _is_simulation: order.isSimulated || false,
+      _client_order_id: clientOrderId,
     });
 
     if (!rpcErr && rpcOrderId) {

@@ -375,7 +375,9 @@ export async function submitPosSaleToBackend(session: POSSession): Promise<{ suc
       notes: item.notes || null,
     }));
 
-    const { data, error } = await supabase.rpc("create_restaurant_order", {
+    // ponytail: uses create_pos_sale for backend idempotency via client_order_id
+    const clientOrderId = `pos-${session.id}`;
+    const { data, error } = await supabase.rpc("create_pos_sale", {
       _org_id: session.orgId,
       _location_id: session.locationId,
       _type: session.orderType,
@@ -389,6 +391,7 @@ export async function submitPosSaleToBackend(session: POSSession): Promise<{ suc
       _tax_rate_basis_points: Math.round(session.taxRatePercent * 100),
       _items: itemsPayload,
       _is_simulation: false,
+      _client_order_id: clientOrderId,
     });
     if (error) {
       return { success: false, error: error.message };

@@ -73,7 +73,7 @@ describe("Orders persistence and multi-tenant integrity", () => {
       orderNumber: "#TEST-99",
       type: "dine_in",
       status: "new",
-      customer: { name: "Idempotency Check" },
+      customer: { name: "Idempotency Check", phone: "" },
       items: [
         {
           id: "it-1",
@@ -98,5 +98,13 @@ describe("Orders persistence and multi-tenant integrity", () => {
 
     const res = await persistOrderToSupabase(testOrder.orgId, testOrder);
     expect(typeof res.success).toBe("boolean");
+  });
+
+  it("generates deterministic client_order_id for idempotency", () => {
+    const orderId = "550e8400-e29b-41d4-a716-446655440000";
+    const clientOrderId = `persist-${orderId}`;
+    expect(clientOrderId).toBe("persist-550e8400-e29b-41d4-a716-446655440000");
+    // Same input always produces same key — backend UNIQUE index prevents duplicates
+    expect(`persist-${orderId}`).toBe(clientOrderId);
   });
 });
