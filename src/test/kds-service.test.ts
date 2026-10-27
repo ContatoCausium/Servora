@@ -204,4 +204,62 @@ describe("kds-service", () => {
     expect(result.length).toBe(1);
     expect(result[0]?.id).toBe("ord-dup-1");
   });
+
+  it("merges updated status correctly when reconnected after offline period", () => {
+    const staleOrder: Order = {
+      id: "ord-offline-1",
+      orgId: "org-1",
+      locationId: "loc-1",
+      orderNumber: "#301",
+      type: "dine_in",
+      status: "new",
+      customer: { name: "Offline Customer" },
+      items: [],
+      subtotalCents: 1500,
+      discountCents: 0,
+      taxRatePercent: 8.25,
+      taxCents: 124,
+      totalCents: 1624,
+      createdAt: "2026-05-10T15:00:00Z",
+      updatedAt: "2026-05-10T15:00:00Z",
+      timeline: [],
+    };
+
+    const refetchedOrder: Order = {
+      ...staleOrder,
+      status: "ready",
+      updatedAt: "2026-05-10T15:12:00Z",
+    };
+
+    const merged = mergeKDSOrders([staleOrder], [refetchedOrder]);
+    expect(merged.length).toBe(1);
+    expect(merged[0]?.status).toBe("ready");
+  });
+
+  it("preserves station routing even with empty item lists", () => {
+    const emptyOrder: Order = {
+      id: "ord-empty",
+      orgId: "org-1",
+      locationId: "loc-1",
+      orderNumber: "#302",
+      type: "takeout",
+      status: "new",
+      customer: { name: "Empty Cart" },
+      items: [],
+      subtotalCents: 0,
+      discountCents: 0,
+      taxRatePercent: 8.25,
+      taxCents: 0,
+      totalCents: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      timeline: [],
+    };
+
+    const allFiltered = filterOrdersByStation([emptyOrder], "all");
+    expect(allFiltered.length).toBe(1);
+
+    const grillFiltered = filterOrdersByStation([emptyOrder], "grill");
+    expect(grillFiltered.length).toBe(0);
+  });
 });
