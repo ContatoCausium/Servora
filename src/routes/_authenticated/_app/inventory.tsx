@@ -27,6 +27,10 @@ import {
   syncRecipeWithInventoryPrices, checkRecipeStockAvailability,
   calculateIngredientCost, computeRecipeTotals, type ProductRecipe, type RecipeIngredient, type RecipeUnit
 } from "@/lib/recipes-service";
+import {
+  listSuppliers, saveSupplier, toggleSupplierActive, listPurchaseOrders, savePurchaseOrder,
+  processPOReceiving, cancelPurchaseOrder, calculatePOTotals, type Supplier, type PurchaseOrder, type PurchaseOrderItem, type POStatus
+} from "@/lib/suppliers-purchases-service";
 import { DemoBadge } from "@/components/app/brand-mark";
 
 export const Route = createFileRoute("/_authenticated/_app/inventory")({
@@ -41,9 +45,11 @@ export function InventoryPage() {
   const { org, locationId, user, role } = useWorkspace();
   const canManage = role !== "staff";
 
-  const [activeTab, setActiveTab] = useState<"items" | "movements" | "recipes">("items");
+  const [activeTab, setActiveTab] = useState<"items" | "movements" | "recipes" | "suppliers" | "purchases">("items");
   const [items, setItems] = useState<InventoryItem[]>(() => listInventory(org.id, locationId));
   const [recipes, setRecipes] = useState<ProductRecipe[]>(() => listProductRecipes(org.id, locationId));
+  const [suppliers, setSuppliers] = useState<Supplier[]>(() => listSuppliers(org.id));
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>(() => listPurchaseOrders(org.id, locationId));
   const [movementsTick, setMovementsTick] = useState(0);
   const [recipeModalOpen, setRecipeModalOpen] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<ProductRecipe | null>(null);
@@ -73,9 +79,19 @@ export function InventoryPage() {
   const [moveReason, setMoveReason] = useState<string>("");
   const [targetLocationId, setTargetLocationId] = useState<string>("");
 
+  const [supplierModalOpen, setSupplierModalOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [poModalOpen, setPOModalOpen] = useState(false);
+  const [receiveModalOpen, setReceiveModalOpen] = useState(false);
+  const [selectedPOForReceive, setSelectedPOForReceive] = useState<PurchaseOrder | null>(null);
+  const [receiveInputs, setReceiveInputs] = useState<Record<string, { qty: number; price: number; note: string }>>({});
+  const [receivingNote, setReceivingNote] = useState("");
+
   const refreshData = () => {
     setItems(listInventory(org.id, locationId));
     setRecipes(listProductRecipes(org.id, locationId));
+    setSuppliers(listSuppliers(org.id));
+    setPurchaseOrders(listPurchaseOrders(org.id, locationId));
     setMovementsTick((x) => x + 1);
   };
 
@@ -272,6 +288,22 @@ export function InventoryPage() {
               >
                 {t("recipes.tab", { defaultValue: "Fichas Técnicas" })}
               </button>
+              <button
+                onClick={() => setActiveTab("suppliers")}
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                  activeTab === "suppliers" ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t("suppliers.tab", { defaultValue: "Fornecedores" })}
+              </button>
+              <button
+                onClick={() => setActiveTab("purchases")}
+                className={`px-3 py-1.5 rounded-md font-medium transition-colors ${
+                  activeTab === "purchases" ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {t("purchases.tab", { defaultValue: "Compras (PO)" })}
+              </button>
             </div>
 
             {canManage && activeTab === "recipes" && (
@@ -280,7 +312,19 @@ export function InventoryPage() {
                 {t("recipes.newRecipe", { defaultValue: "Nova Ficha Técnica" })}
               </Button>
             )}
-            {canManage && activeTab !== "recipes" && (
+            {canManage && activeTab === "suppliers" && (
+              <Button size="sm" onClick={() => { setEditingSupplier(null); setSupplierModalOpen(true); }}>
+                <Plus className="mr-1.5 size-4" />
+                {t("suppliers.newSupplier", { defaultValue: "Novo Fornecedor" })}
+              </Button>
+            )}
+            {canManage && activeTab === "purchases" && (
+              <Button size="sm" onClick={() => setPOModalOpen(true)}>
+                <Plus className="mr-1.5 size-4" />
+                {t("purchases.newPO", { defaultValue: "Novo Pedido (PO)" })}
+              </Button>
+            )}
+            {canManage && (activeTab === "items" || activeTab === "movements") && (
               <Button size="sm" onClick={() => handleOpenMovementModal()}>
                 <ArrowUpDown className="mr-1.5 size-4" />
                 Registrar Movimento
@@ -290,7 +334,120 @@ export function InventoryPage() {
         }
       />
 
-      {activeTab === "recipes" ? (
+      {activeTab === "suppliers" ? (
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {suppliers.map((sup) => (
+              <div key={sup.id} className="rounded-xl border bg-card p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-bold text-sm">{sup.name}</h3>
+                      {sup.contactName && <p className="text-xs text-muted-foreground mt-0.5">Contato: {sup.contactName}</p>}
+                    </div>
+                    <Badge variant={sup.active ? "outline" : "secondary"} className="text-[10px]">
+                      {sup.active ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 space-y-1 text-xs text-muted-foreground">
+                    {sup.email && <p>E-mail: {sup.email}</p>}
+                    {sup.phone && <p>Tel: {sup.phone}</p>}
+                    {sup.address && <p className="truncate">End: {sup.address}</p>}
+                  </div>
+                  {sup.notes && (
+                    <p className="mt-3 text-[11px] bg-muted/40 p-2 rounded text-muted-foreground italic">{sup.notes}</p>
+                  )}
+                </div>
+                <div className="mt-4 pt-3 border-t flex justify-end gap-2">
+                  {canManage && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        toggleSupplierActive(org.id, sup.id);
+                        refreshData();
+                        toast.success("Status do fornecedor atualizado");
+                      }}
+                    >
+                      {sup.active ? "Desativar" : "Reativar"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : activeTab === "purchases" ? (
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {purchaseOrders.map((po) => (
+              <div key={po.id} className="rounded-xl border bg-card p-4 flex flex-col justify-between shadow-xs">
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-mono font-bold text-sm text-primary">{po.poNumber}</span>
+                      <p className="font-medium text-xs mt-0.5">{po.supplierName}</p>
+                    </div>
+                    <Badge
+                      variant={po.status === "received" ? "default" : po.status === "cancelled" ? "destructive" : "outline"}
+                      className="text-[10px] capitalize"
+                    >
+                      {po.status.replace("_", " ")}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex items-baseline justify-between border-t pt-2 text-xs">
+                    <span className="text-muted-foreground">Total Ordem</span>
+                    <span className="font-bold text-base text-foreground">${(po.totalCents / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="mt-2 text-[11px] text-muted-foreground">
+                    <span>{po.items.length} itens pedidos</span>
+                    {po.expectedDeliveryDate && <span> · Entrega: {po.expectedDeliveryDate}</span>}
+                  </div>
+                </div>
+                <div className="mt-4 pt-3 border-t flex items-center justify-between gap-2">
+                  {po.status !== "received" && po.status !== "cancelled" && canManage ? (
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        setSelectedPOForReceive(po);
+                        const initial: Record<string, { qty: number; price: number; note: string }> = {};
+                        po.items.forEach((it) => {
+                          initial[it.id] = {
+                            qty: Math.max(0, it.quantityOrdered - it.quantityReceived),
+                            price: it.unitPriceCents / 100,
+                            note: "",
+                          };
+                        });
+                        setReceiveInputs(initial);
+                        setReceivingNote("");
+                        setReceiveModalOpen(true);
+                      }}
+                    >
+                      {t("purchases.receiveGoods", { defaultValue: "Receber Itens" })}
+                    </Button>
+                  ) : <span />}
+                  {po.status === "draft" && canManage && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs text-destructive hover:bg-destructive/10"
+                      onClick={() => {
+                        cancelPurchaseOrder(org.id, po.id, user.fullName || "Admin", "Cancelado pelo usuário");
+                        refreshData();
+                        toast.success("Pedido de compra cancelado");
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : activeTab === "recipes" ? (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recipes.map((rec) => {
@@ -628,6 +785,102 @@ export function InventoryPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRecipeModalOpen(false)}>Cancelar</Button>
             <Button onClick={handleSaveRecipeForm}>Salvar Ficha Técnica</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Recebimento de PO */}
+      <Dialog open={receiveModalOpen} onOpenChange={setReceiveModalOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Conferência de Recebimento ({selectedPOForReceive?.poNumber})</DialogTitle>
+            <DialogDescription>
+              Verifique quantidades entregues e divergências de preço na fatura. Saldo adicionado ao estoque automaticamente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2 text-xs">
+            {selectedPOForReceive?.items.map((it) => {
+              const currentInput = receiveInputs[it.id] || { qty: 0, price: it.unitPriceCents / 100, note: "" };
+              return (
+                <div key={it.id} className="rounded-lg border p-2.5 bg-muted/20 space-y-1.5">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-bold text-sm">{it.name}</p>
+                      <p className="text-muted-foreground">Pedido: {it.quantityOrdered} {it.unit} (Já entregue: {it.quantityReceived})</p>
+                    </div>
+                    <span className="font-mono font-medium">Acordado: ${(it.unitPriceCents / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <div>
+                      <Label className="text-[11px]">Qtd Recebida Agora</Label>
+                      <Input
+                        type="number"
+                        step="0.5"
+                        min="0"
+                        max={it.quantityOrdered - it.quantityReceived}
+                        value={currentInput.qty}
+                        onChange={(e) => {
+                          const v = Math.max(0, parseFloat(e.target.value || "0"));
+                          setReceiveInputs({ ...receiveInputs, [it.id]: { ...currentInput, qty: v } });
+                        }}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[11px]">Preço Unit. Verificado (USD)</Label>
+                      <Input
+                        type="number"
+                        step="0.10"
+                        value={currentInput.price}
+                        onChange={(e) => {
+                          const v = Math.max(0, parseFloat(e.target.value || "0"));
+                          setReceiveInputs({ ...receiveInputs, [it.id]: { ...currentInput, price: v } });
+                        }}
+                        className="h-7 text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="space-y-1 pt-2">
+              <Label>Observação de Entrega / Lacre</Label>
+              <Input
+                placeholder="Ex: Lacre conferido sem avarias, lote conferido..."
+                value={receivingNote}
+                onChange={(e) => setReceivingNote(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReceiveModalOpen(false)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (!selectedPOForReceive) return;
+                try {
+                  const payload = Object.entries(receiveInputs).map(([itemId, val]) => ({
+                    itemId,
+                    receivedNow: val.qty,
+                    priceVerifiedCents: Math.round(val.price * 100),
+                    divergenceReason: val.note,
+                  }));
+                  processPOReceiving(
+                    org.id,
+                    selectedPOForReceive.id,
+                    payload,
+                    user.fullName || user.email || "Auditor Estoque",
+                    receivingNote
+                  );
+                  setReceiveModalOpen(false);
+                  refreshData();
+                  toast.success("Recebimento auditado e integrado ao estoque com sucesso!");
+                } catch (e) { 
+                  toast.error(e instanceof Error ? e.message : "Erro ao registrar recebimento");
+                }
+              }}
+            >
+              Confirmar Entrada de Estoque
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

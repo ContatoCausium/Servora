@@ -1,6 +1,6 @@
 {
   "title": "Inventory & Ingredients",
-  "subtitle": "Manage ingredients, unit-level costs, stock alerts and store-by-store supply.",
+  "subtitle": "Manage supplies, unit costs, low-stock thresholds, and multi-location par levels.",
   "simulatedBadge": "Interactive Simulation",
   "actions": {
     "newItem": "Add ingredient",
@@ -9,8 +9,8 @@
     "filter": "Filters"
   },
   "kpis": {
-    "totalValue": "Total Estimated Stock Value",
-    "lowStock": "Low Stock Alert",
+    "totalValue": "Estimated Inventory Value",
+    "lowStock": "Low Stock Items",
     "outOfStock": "Out of Stock Items",
     "expiringSoon": "Expiring in < 7 Days"
   },
@@ -18,19 +18,19 @@
     "all": "All categories",
     "meat": "Meat & Poultry",
     "produce": "Fresh Produce",
-    "dairy": "Dairy & Cheese",
-    "bakery": "Bakery & Buns",
+    "dairy": "Dairy & Eggs",
+    "bakery": "Bakery & Bread",
     "dry_goods": "Dry Goods & Oils",
     "beverages": "Beverages & Syrups",
-    "packaging": "Packaging & Eco"
+    "packaging": "Packaging & Disposables"
   },
   "table": {
     "item": "Item & SKU",
     "category": "Category",
-    "stock": "Stock on Hand",
-    "min": "Min Level",
+    "stock": "In Stock",
+    "min": "Min Stock",
     "unitCost": "Unit Cost",
-    "totalValue": "Value (USD)",
+    "totalValue": "Total Value",
     "supplier": "Supplier",
     "status": "Status",
     "actions": "Actions"
@@ -43,46 +43,90 @@
     "inactive": "Inactive"
   },
   "modal": {
-    "titleNew": "Register New Stock Item",
-    "titleEdit": "Edit Stock Item",
+    "titleNew": "New Ingredient",
+    "titleEdit": "Edit Ingredient",
     "name": "Ingredient Name",
     "sku": "SKU / Code",
     "category": "Category",
-    "unit": "Unit of Measure",
-    "quantity": "Current Quantity",
-    "minQuantity": "Minimum Threshold (Par level)",
-    "cost": "Unit Cost in USD",
-    "supplier": "Supplier / Vendor",
+    "unit": "Unit of Measurement",
+    "quantity": "Current Stock",
+    "minQuantity": "Par Level (Min)",
+    "cost": "Unit Cost (USD)",
+    "supplier": "Supplier",
     "expirationDate": "Expiration Date (Optional)",
     "active": "Active inventory tracking",
     "cancel": "Cancel",
-    "save": "Save Item"
+    "save": "Save Ingredient"
   },
   "comparison": {
-    "title": "Multi-Location Stock Comparison",
-    "desc": "View and compare ingredient availability across active licensed stores."
+    "title": "Inventory Comparison Across Stores",
+    "desc": "View stock levels across all your operational locations."
   },
   "empty": {
     "title": "No inventory items found",
-    "body": "Adjust your search filters or register a new ingredient."
+    "body": "Adjust search filters or add a new ingredient for this store."
   },
   "recipes": {
-    "tab": "Recipes & BOM",
+    "tab": "Recipes (BOM)",
     "newRecipe": "New Recipe",
-    "syncCosts": "Sync Stock Costs",
+    "syncCosts": "Sync Costs",
     "duplicate": "Duplicate",
-    "servings": "Yield / Servings",
+    "servings": "Yield (Servings)",
     "costPerServing": "Cost per Portion",
-    "totalCost": "Total Cost",
+    "totalCost": "Total Recipe Cost",
     "sellingPrice": "Selling Price",
-    "margin": "Gross Margin",
+    "margin": "Target Margin",
     "ingredientsCount": "Linked Ingredients",
-    "waste": "Waste / Loss (%)",
+    "waste": "Prep Waste (%)",
     "subtotal": "Subtotal USD",
-    "stockStatus": "Stock Status",
+    "stockStatus": "Stock Availability",
     "sufficient": "In Stock",
-    "insufficient": "Insufficient Stock",
-    "history": "Change History",
+    "insufficient": "Low Ingredient",
+    "history": "Recipe Audit History",
     "prepNotes": "Preparation Instructions"
+  },
+  "suppliers": {
+    "tab": "Suppliers",
+    "newSupplier": "New Supplier",
+    "editSupplier": "Edit Supplier",
+    "name": "Supplier Name",
+    "contact": "Contact Person",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "categories": "Supplied Categories",
+    "active": "Active Supplier",
+    "status": "Status",
+    "notes": "Notes / Delivery terms",
+    "emptyTitle": "No suppliers configured",
+    "emptyBody": "Register primary meat, produce or dairy vendors to automate purchase orders."
+  },
+  "purchases": {
+    "tab": "Purchase Orders",
+    "newPO": "New Purchase Order",
+    "poNumber": "PO Number",
+    "supplier": "Vendor",
+    "store": "Store",
+    "status": "Order Status",
+    "deliveryDate": "Expected Delivery",
+    "items": "Items",
+    "subtotal": "Subtotal",
+    "tax": "Sales Tax",
+    "discount": "Vendor Discount",
+    "shipping": "Freight / Shipping",
+    "total": "Total (USD)",
+    "receiveGoods": "Receive Goods",
+    "checkTitle": "Receiving & Price Audit",
+    "quantityOrdered": "Ordered",
+    "quantityReceived": "Previously Received",
+    "receiveNow": "Receive Now",
+    "actualPrice": "Verified Unit Price (USD)",
+    "divergence": "Price Divergence / Notes",
+    "statusDraft": "Draft",
+    "statusSent": "Sent to Vendor",
+    "statusPartial": "Partially Received",
+    "statusReceived": "Received & Inbound",
+    "statusCancelled": "Cancelled",
+    "confirmReceiving": "Confirm Receiving into Inventory"
   }
 }
