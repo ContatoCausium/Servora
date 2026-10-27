@@ -11,9 +11,11 @@ import { listMenuItems, type MenuItem, type ModifierOption } from "@/lib/menu-se
 import {
   getPOSSession, addItemToCart, updateCartItemQuantity,
   removeItemFromCart, applyDiscount, setOrderType, setCustomerInfo,
-  suspendSession, resumeSession, finalizeSale, simulatePayment,
-  type POSPaymentMethod
+  suspendSession, resumeSession, simulatePayment,
+  type POSPaymentMethod,
+  type POSCartItem
 } from "@/lib/pos-service";
+import { persistFinalizedPOSSaleAtomic, cancelOrderWithReversal } from "@/lib/orders-persistence-service";
 import { type OrderType } from "@/lib/orders-service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +48,10 @@ export function POSPage() {
   const [discountInput, setDiscountInput] = useState("");
   const [payMethod, setPayMethod] = useState<POSPaymentMethod>("cash");
   const [tenderedInput, setTenderedInput] = useState("");
-  const [receiptSession, setReceiptSession] = useState<typeof session | null>(null);
+  const [receiptSession, setReceiptSession] = useState<(typeof session & { persistedOrderId?: string }) | null>(null);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancellingSale, setCancellingSale] = useState(false);
 
   useEffect(() => {
     setSession(getPOSSession(org.id, activeLocId, cashierName));
@@ -163,19 +168,46 @@ export function POSPage() {
     setSubmittingSale(true);
     try {
       const idemKey = `pos-tx-${session.id}-${Date.now()}`;
-      const finalized = finalizeSale(paid, idemKey);
-      if (!finalized) {
-        throw new Error("RPC create_restaurant_order unconfirmed");
+      const persistRes = await persistFinalizedPOSSaleAtomic(paid, idemKey);
+      if (!persistRes.success || !persistRes.orderId) {
+        throw new Error(persistRes.error || "RPC create_restaurant_order unconfirmed");
       }
-      setReceiptSession(finalized);
+
+      const finalizedRecord = {
+        ...paid,
+        persistedOrderId: persistRes.orderId,
+      };
+
+      setReceiptSession(finalizedRecord);
       setCheckoutOpen(false);
       setSession(getPOSSession(org.id, activeLocId, cashierName));
-      toast.success("Venda confirmada com sucesso!");
+      toast.success(`Venda registrada com sucesso! Pedido #${persistRes.orderNumber || persistRes.orderId.slice(0, 8)}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro ao registrar venda na base";
       toast.error(`Falha no POS: ${msg}. A venda NÃO foi confirmada.`);
     } finally {
       setSubmittingSale(false);
+    }
+  };
+
+  const handleCancelPersistedSale = async () => {
+    if (!receiptSession?.persistedOrderId || cancellingSale) return;
+    const reason = cancelReason.trim() || "Cancelamento solicitado pelo operador no caixa";
+    setCancellingSale(true);
+    try {
+      const res = await cancelOrderWithReversal(receiptSession.persistedOrderId, reason);
+      if (!res.success) {
+        throw new Error(res.error || "Falha na reversão atômica");
+      }
+      toast.success("Venda cancelada e estoque revertido com sucesso.");
+      setCancelModalOpen(false);
+      setReceiptSession(null);
+      setCancelReason("");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erro ao cancelar venda";
+      toast.error(`Falha ao cancelar: ${msg}`);
+    } finally {
+      setCancellingSale(false);
     }
   };
 
@@ -486,14 +518,65 @@ export function POSPage() {
               </div>
             </div>
           )}
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            {receiptSession?.persistedOrderId && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setCancelModalOpen(true)}
+                className="w-full sm:w-auto mr-auto text-xs"
+              >
+                <XCircle className="size-3.5 mr-1" /> Estornar / Cancelar
+              </Button>
+            )}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <Button variant="outline" size="sm" onClick={() => { window.print(); }}>
+                <Printer className="size-3.5 mr-1" /> Print
+              </Button>
+              <Button size="sm" onClick={() => setReceiptSession(null)}>Close</Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Cancel Confirmation Dialog */}
+      <Dialog open={cancelModalOpen} onOpenChange={setCancelModalOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-destructive flex items-center gap-1.5">
+              <XCircle className="size-4" /> Cancelar Venda Efetivada
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 py-2 text-xs">
+            <p className="text-muted-foreground">
+              Esta operação cancelará o pedido persistido no backend e reverterá automaticamente os movimentos de estoque e CMV.
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <label className="font-medium text-foreground">Motivo do Cancelamento</label>
+              <Input
+                placeholder="Ex: Cliente desistiu, erro de digitação"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { window.print(); }}>
-              <Printer className="size-3.5 mr-1" /> Print
+            <Button variant="outline" size="sm" disabled={cancellingSale} onClick={() => setCancelModalOpen(false)}>
+              Voltar
             </Button>
-            <Button onClick={() => setReceiptSession(null)}>Close</Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={cancellingSale}
+              onClick={handleCancelPersistedSale}
+            >
+              {cancellingSale ? "Cancelando..." : "Confirmar Cancelamento"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
+
 }

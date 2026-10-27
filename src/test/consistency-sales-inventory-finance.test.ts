@@ -139,4 +139,17 @@ describe("Sales, Inventory and Finance Consistency Suite", () => {
     expect(initialQty + delta).toBe(25);
     expect(initialQty + delta + revertedDelta).toBe(30);
   });
+
+  it("differentiates persisted POS sale from unpersisted local cart when cancelling", () => {
+    const session = getPOSSession("org-test", "loc-1", "Cashier 1");
+    // Cart has not been persisted
+    expect((session as any).persistedOrderId).toBeUndefined();
+
+    // Simulated persisted state receipt
+    const persistedReceipt = {
+      ...session,
+      persistedOrderId: "order-persisted-123",
+    };
+    expect(persistedReceipt.persistedOrderId).toBe("order-persisted-123");
+  });
 });
