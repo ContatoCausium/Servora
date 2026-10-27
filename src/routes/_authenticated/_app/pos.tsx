@@ -164,12 +164,16 @@ export function POSPage() {
     try {
       const idemKey = `pos-tx-${session.id}-${Date.now()}`;
       const finalized = finalizeSale(paid, idemKey);
+      if (!finalized) {
+        throw new Error("RPC create_restaurant_order unconfirmed");
+      }
       setReceiptSession(finalized);
       setCheckoutOpen(false);
       setSession(getPOSSession(org.id, activeLocId, cashierName));
-      toast.success("Venda finalizada com confirmação e persistência registrada!");
+      toast.success("Venda confirmada com sucesso!");
     } catch (err) {
-      toast.error("Falha ao registrar venda. Verifique os dados do pedido.");
+      const msg = err instanceof Error ? err.message : "Erro ao registrar venda na base";
+      toast.error(`Falha no POS: ${msg}. A venda NÃO foi confirmada.`);
     } finally {
       setSubmittingSale(false);
     }
