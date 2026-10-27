@@ -744,3 +744,384 @@ export function formatUsd(cents: number): string {
   const sign = cents < 0 ? "-" : "";
   return `${sign}$${abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
+
+export type FinancialReportType =
+  | "revenue"
+  | "expenses"
+  | "cash_flow"
+  | "payables_receivables"
+  | "cogs_margins"
+  | "store_performance"
+  | "monthly_trends";
+
+export interface FinancialReportFilters {
+  reportType: FinancialReportType;
+  locationId: string;
+  startDate?: string;
+  endDate?: string;
+  category?: string;
+  dataType?: "all" | "realized" | "projected" | "simulated";
+}
+
+export interface FinancialReportRow {
+  id: string;
+  dateOrKey: string;
+  title: string;
+  category: string;
+  locationName: string;
+  typeKind: "inflow" | "outflow" | "metric" | "neutral";
+  amountCents: number;
+  formattedAmount: string;
+  statusBadge: string;
+  notes?: string;
+}
+
+export interface FinancialReportResult {
+  title: string;
+  reportType: FinancialReportType;
+  generatedAt: string;
+  restaurantName: string;
+  locationName: string;
+  periodLabel: string;
+  currency: "USD";
+  totalInflowCents: number;
+  totalOutflowCents: number;
+  netBalanceCents: number;
+  realizedCount: number;
+  projectedCount: number;
+  simulatedCount: number;
+  rows: FinancialReportRow[];
+}
+
+export function generateFinancialReport(options: {
+  filters: FinancialReportFilters;
+  restaurantName: string;
+  locationName: string;
+  expenses: Expense[];
+  orders: Array<{
+    id: string;
+    totalCents: number;
+    discountCents?: number;
+    taxCents?: number;
+    status: string;
+    isSimulated?: boolean;
+    createdAt: string;
+    locationId?: string;
+  }>;
+  productMargins?: ProductMarginMetric[];
+  storeComparisons?: StoreFinancialComparison[];
+}): FinancialReportResult {
+  const { filters, restaurantName, locationName, expenses, orders, productMargins = [], storeComparisons = [] } = options;
+  const generatedAt = new Date().toISOString();
+  const periodLabel = filters.startDate && filters.endDate
+    ? `${filters.startDate} - ${filters.endDate}`
+    : "Year-To-Date (Current Cycle)";
+
+  let rows: FinancialReportRow[] = [];
+  let totalInflowCents = 0;
+  let totalOutflowCents = 0;
+  let realizedCount = 0;
+  let projectedCount = 0;
+  let simulatedCount = 0;
+
+  const matchesData = (st: "realized" | "projected" | "simulated") => {
+    if (!filters.dataType || filters.dataType === "all") return true;
+    return filters.dataType === st;
+  };
+
+  if (filters.reportType === "revenue") {
+    orders.forEach((ord) => {
+      const isSim = !!ord.isSimulated;
+      const st: "realized" | "simulated" = isSim ? "simulated" : "realized";
+      if (!matchesData(st)) return;
+      if (isSim) simulatedCount += 1; else realizedCount += 1;
+      totalInflowCents += ord.totalCents;
+      rows.push({
+        id: ord.id,
+        dateOrKey: ord.createdAt ? ord.createdAt.split("T")[0] || "-" : "-",
+        title: `Order #${ord.id.slice(0, 8)}`,
+        category: "POS / Dining Sales",
+        locationName,
+        typeKind: "inflow",
+        amountCents: ord.totalCents,
+        formattedAmount: formatUsd(ord.totalCents),
+        statusBadge: isSim ? "Simulated" : ord.status,
+        notes: ord.discountCents ? `Discount: ${formatUsd(ord.discountCents)}` : undefined,
+      });
+    });
+  } else if (filters.reportType === "expenses") {
+    expenses.forEach((exp) => {
+      if (filters.category && filters.category !== "all" && exp.category !== filters.category) return;
+      const st: "realized" | "projected" = exp.status === "paid" ? "realized" : "projected";
+      if (!matchesData(st)) return;
+      if (st === "realized") realizedCount += 1; else projectedCount += 1;
+      totalOutflowCents += exp.amountCents;
+      rows.push({
+        id: exp.id,
+        dateOrKey: exp.dueDate,
+        title: exp.description,
+        category: exp.category,
+        locationName,
+        typeKind: "outflow",
+        amountCents: exp.amountCents,
+        formattedAmount: `-${formatUsd(exp.amountCents)}`,
+        statusBadge: exp.status,
+        notes: exp.supplierName ? `Supplier: ${exp.supplierName}` : undefined,
+      });
+    });
+  } else if (filters.reportType === "cash_flow") {
+    orders.filter((o) => o.status === "delivered").forEach((o) => {
+      const isSim = !!o.isSimulated;
+      const st = isSim ? "simulated" : "realized";
+      if (!matchesData(st)) return;
+      if (isSim) simulatedCount += 1; else realizedCount += 1;
+      totalInflowCents += o.totalCents;
+      rows.push({
+        id: `in-${o.id}`,
+        dateOrKey: o.createdAt.split("T")[0] || "-",
+        title: `Cash Inflow (Order #${o.id.slice(0, 6)})`,
+        category: "Sales Revenue",
+        locationName,
+        typeKind: "inflow",
+        amountCents: o.totalCents,
+        formattedAmount: `+${formatUsd(o.totalCents)}`,
+        statusBadge: isSim ? "Simulated" : "Realized",
+      });
+    });
+    expenses.filter((e) => e.status === "paid").forEach((e) => {
+      if (!matchesData("realized")) return;
+      realizedCount += 1;
+      totalOutflowCents += e.amountCents;
+      rows.push({
+        id: `out-${e.id}`,
+        dateOrKey: e.paidAt ? e.paidAt.split("T")[0] || e.dueDate : e.dueDate,
+        title: `Cash Outflow: ${e.description}`,
+        category: e.category,
+        locationName,
+        typeKind: "outflow",
+        amountCents: e.amountCents,
+        formattedAmount: `-${formatUsd(e.amountCents)}`,
+        statusBadge: "Paid",
+      });
+    });
+  } else if (filters.reportType === "payables_receivables") {
+    expenses.forEach((e) => {
+      const isOverdue = e.status === "overdue";
+      const isPending = e.status === "pending";
+      if (!isOverdue && !isPending) return;
+      projectedCount += 1;
+      totalOutflowCents += e.amountCents;
+      rows.push({
+        id: e.id,
+        dateOrKey: e.dueDate,
+        title: `Payable: ${e.description}`,
+        category: e.category,
+        locationName,
+        typeKind: "outflow",
+        amountCents: e.amountCents,
+        formattedAmount: `-${formatUsd(e.amountCents)}`,
+        statusBadge: e.status,
+        notes: e.supplierName,
+      });
+    });
+  } else if (filters.reportType === "cogs_margins") {
+    productMargins.forEach((pm) => {
+      realizedCount += 1;
+      totalInflowCents += pm.revenueCents;
+      totalOutflowCents += pm.cogsCents;
+      rows.push({
+        id: pm.productId,
+        dateOrKey: pm.category,
+        title: pm.productName,
+        category: `${pm.unitsSold} units · ${pm.grossMarginPct.toFixed(1)}% margin`,
+        locationName,
+        typeKind: "metric",
+        amountCents: pm.grossProfitCents,
+        formattedAmount: formatUsd(pm.grossProfitCents),
+        statusBadge: pm.hasHighCostAlert ? "High Cost" : "Healthy",
+        notes: `Rev: ${formatUsd(pm.revenueCents)} | COGS: ${formatUsd(pm.cogsCents)}`,
+      });
+    });
+  } else if (filters.reportType === "store_performance") {
+    storeComparisons.forEach((s) => {
+      if (s.status === "simulated") simulatedCount += 1; else realizedCount += 1;
+      totalInflowCents += s.grossRevenueCents;
+      totalOutflowCents += s.operatingExpensesCents;
+      rows.push({
+        id: s.locationId,
+        dateOrKey: `#${s.netProfitRank} in Profit`,
+        title: s.locationName,
+        category: `${s.orderCount} orders · Ticket: ${formatUsd(s.averageTicketCents)}`,
+        locationName: s.locationName,
+        typeKind: "metric",
+        amountCents: s.estimatedNetProfitCents,
+        formattedAmount: formatUsd(s.estimatedNetProfitCents),
+        statusBadge: s.status,
+        notes: `Rev: ${formatUsd(s.grossRevenueCents)} | Margin: ${s.netMarginPct.toFixed(1)}%`,
+      });
+    });
+  } else {
+    const trends = generateMonthlyTrend(totalOutflowCents || 2500000, totalInflowCents || 4200000);
+    trends.forEach((tr, i) => {
+      realizedCount += 1;
+      totalInflowCents += tr.revenueCents;
+      totalOutflowCents += tr.expensesCents;
+      rows.push({
+        id: `trend-${i}`,
+        dateOrKey: tr.month,
+        title: `Financial Performance ${tr.month}`,
+        category: "Monthly Trend",
+        locationName,
+        typeKind: "metric",
+        amountCents: tr.netProfitCents,
+        formattedAmount: formatUsd(tr.netProfitCents),
+        statusBadge: tr.netProfitCents >= 0 ? "Profitable" : "Loss",
+        notes: `Rev: ${formatUsd(tr.revenueCents)} | Exp: ${formatUsd(tr.expensesCents)}`,
+      });
+    });
+  }
+
+  const reportTitles: Record<FinancialReportType, string> = {
+    revenue: "Revenue & Sales Breakdown",
+    expenses: "Operating Expenses Detail",
+    cash_flow: "Cash Flow Activity Statement",
+    payables_receivables: "Accounts Payable & Obligations",
+    cogs_margins: "COGS & Product Profitability Margin",
+    store_performance: "Multi-Store Financial Performance",
+    monthly_trends: "Historical Monthly Trends & Variance",
+  };
+
+  return {
+    title: reportTitles[filters.reportType] || "Executive Financial Report",
+    reportType: filters.reportType,
+    generatedAt,
+    restaurantName,
+    locationName,
+    periodLabel,
+    currency: "USD",
+    totalInflowCents,
+    totalOutflowCents,
+    netBalanceCents: totalInflowCents - totalOutflowCents,
+    realizedCount,
+    projectedCount,
+    simulatedCount,
+    rows,
+  };
+}
+
+export function exportReportToCsv(report: FinancialReportResult): string {
+  const headers = ["ID", "Date/Key", "Title", "Category", "Location", "Kind", "Amount_USD", "Status", "Notes"];
+  const lines: string[] = [
+    `# Restaurant: ${report.restaurantName}`,
+    `# Location: ${report.locationName}`,
+    `# Report: ${report.title}`,
+    `# Period: ${report.periodLabel}`,
+    `# Generated At: ${report.generatedAt}`,
+    `# Currency: USD`,
+    headers.join(","),
+  ];
+
+  for (const r of report.rows) {
+    const safeTitle = `"${(r.title || "").replace(/"/g, '""')}"`;
+    const safeCategory = `"${(r.category || "").replace(/"/g, '""')}"`;
+    const safeLocation = `"${(r.locationName || "").replace(/"/g, '""')}"`;
+    const safeNotes = `"${(r.notes || "").replace(/"/g, '""')}"`;
+    const amountNum = (r.amountCents / 100).toFixed(2);
+
+    lines.push([
+      r.id,
+      r.dateOrKey,
+      safeTitle,
+      safeCategory,
+      safeLocation,
+      r.typeKind,
+      amountNum,
+      r.statusBadge,
+      safeNotes,
+    ].join(","));
+  }
+
+  return lines.join("\r\n");
+}
+
+export function exportReportToXmlSpreadsheet(report: FinancialReportResult): string {
+  const rowsXml = report.rows
+    .map(
+      (r) => `<Row>
+        <Cell><Data ss:Type="String">${escapeXml(r.dateOrKey)}</Data></Cell>
+        <Cell><Data ss:Type="String">${escapeXml(r.title)}</Data></Cell>
+        <Cell><Data ss:Type="String">${escapeXml(r.category)}</Data></Cell>
+        <Cell><Data ss:Type="String">${escapeXml(r.locationName)}</Data></Cell>
+        <Cell><Data ss:Type="Number">${(r.amountCents / 100).toFixed(2)}</Data></Cell>
+        <Cell><Data ss:Type="String">${escapeXml(r.statusBadge)}</Data></Cell>
+        <Cell><Data ss:Type="String">${escapeXml(r.notes || "")}</Data></Cell>
+      </Row>`
+    )
+    .join("\n");
+
+  return `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Title>${escapeXml(report.title)}</Title>
+  <Author>${escapeXml(report.restaurantName)}</Author>
+  <Created>${report.generatedAt}</Created>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+  </Style>
+  <Style ss:ID="Header">
+   <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Financial Report">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">Restaurant: ${escapeXml(report.restaurantName)}</Data></Cell>
+    <Cell><Data ss:Type="String">Location: ${escapeXml(report.locationName)}</Data></Cell>
+    <Cell><Data ss:Type="String">Period: ${escapeXml(report.periodLabel)}</Data></Cell>
+    <Cell><Data ss:Type="String">Generated: ${report.generatedAt}</Data></Cell>
+   </Row>
+   <Row ss:StyleID="Header">
+    <Cell><Data ss:Type="String">Date / Key</Data></Cell>
+    <Cell><Data ss:Type="String">Description</Data></Cell>
+    <Cell><Data ss:Type="String">Category</Data></Cell>
+    <Cell><Data ss:Type="String">Location</Data></Cell>
+    <Cell><Data ss:Type="String">Amount (USD)</Data></Cell>
+    <Cell><Data ss:Type="String">Status</Data></Cell>
+    <Cell><Data ss:Type="String">Notes</Data></Cell>
+   </Row>
+   ${rowsXml}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+}
+
+function escapeXml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+export function triggerFileDownload(filename: string, content: string, mimeType: string) {
+  if (typeof window === "undefined") return;
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
