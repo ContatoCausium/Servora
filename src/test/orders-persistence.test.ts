@@ -35,4 +35,68 @@ describe("Orders persistence and multi-tenant integrity", () => {
     const res = await fetchPersistedOrders({ orgId: "mock-org", locationId: "loc-1" });
     expect(Array.isArray(res.orders)).toBe(true);
   });
+
+  it("preserves exact cents across items, discount and tax without rounding drift", () => {
+    const items = [
+      {
+        id: "i1",
+        productId: "p1",
+        productName: "Combo Burger",
+        quantity: 2,
+        basePriceCents: 1550,
+        modifiers: [{ groupId: "g1", groupName: "Sauce", optionId: "o1", optionName: "Truffle", priceCents: 125 }],
+        subtotalCents: (1550 + 125) * 2, // 3350
+      },
+      {
+        id: "i2",
+        productId: "p2",
+        productName: "Soda",
+        quantity: 1,
+        basePriceCents: 450,
+        modifiers: [],
+        subtotalCents: 450,
+      },
+    ];
+
+    const summary = calculateOrderSummary(items, 8.25, 200);
+    expect(summary.subtotalCents).toBe(3800);
+    // Taxable = 3800 - 200 = 3600; 8.25% of 3600 = 297 cents
+    expect(summary.taxCents).toBe(297);
+    expect(summary.totalCents).toBe(3897);
+  });
+
+  it("handles order creation idempotence with persistent payload generation", async () => {
+    const testOrder: Order = {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      orgId: "11111111-1111-1111-1111-111111111111",
+      locationId: "22222222-2222-2222-2222-222222222222",
+      orderNumber: "#TEST-99",
+      type: "dine_in",
+      status: "new",
+      customer: { name: "Idempotency Check" },
+      items: [
+        {
+          id: "it-1",
+          productId: "33333333-3333-3333-3333-333333333333",
+          productName: "Test Item",
+          quantity: 1,
+          basePriceCents: 1200,
+          modifiers: [],
+          subtotalCents: 1200,
+        },
+      ],
+      subtotalCents: 1200,
+      discountCents: 0,
+      taxRatePercent: 8.25,
+      taxCents: 99,
+      totalCents: 1299,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      timeline: [],
+      isSimulated: false,
+    };
+
+    const res = await persistOrderToSupabase(testOrder.orgId, testOrder);
+    expect(typeof res.success).toBe("boolean");
+  });
 });

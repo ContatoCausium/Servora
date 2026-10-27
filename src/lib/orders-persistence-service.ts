@@ -30,16 +30,20 @@ export async function fetchPersistedOrders(
         org_id,
         location_id,
         order_number,
-        order_type,
+        type,
         status,
         customer_name,
         customer_phone,
+        customer_email,
+        delivery_address,
         table_number,
         subtotal_cents,
         discount_cents,
+        tax_rate_basis_points,
         tax_cents,
         total_cents,
-        special_instructions,
+        notes,
+        is_simulation,
         created_at,
         updated_at,
         order_items (
@@ -49,9 +53,14 @@ export async function fetchPersistedOrders(
           quantity,
           unit_price_cents,
           subtotal_cents,
-          modifiers,
           notes,
-          is_ready
+          order_item_modifiers (
+            id,
+            option_id,
+            group_name,
+            option_name,
+            price_cents
+          )
         )
       `,
         { count: "exact" }
@@ -67,7 +76,7 @@ export async function fetchPersistedOrders(
       query = query.eq("status", status);
     }
     if (channel) {
-      query = query.eq("order_type", channel);
+      query = query.eq("type", channel);
     }
     if (startDate) {
       query = query.gte("created_at", startDate);
@@ -82,41 +91,55 @@ export async function fetchPersistedOrders(
     }
 
     const mappedOrders: Order[] = (data || []).map((row: any) => {
-      const items: OrderItem[] = (row.order_items || []).map((it: any) => ({
-        id: it.id,
-        productId: it.product_id || "",
-        productName: it.product_name || "Product",
-        quantity: it.quantity || 1,
-        basePriceCents: it.unit_price_cents || 0,
-        modifiers: (it.modifiers as SelectedModifier[]) || [],
-        subtotalCents: it.subtotal_cents || (it.unit_price_cents * (it.quantity || 1)),
-        notes: it.notes || undefined,
-        isItemReady: !!it.is_ready,
-      }));
+      const items: OrderItem[] = (row.order_items || []).map((it: any) => {
+        const rawMods = it.order_item_modifiers || [];
+        const modifiers: SelectedModifier[] = rawMods.map((m: any) => ({
+          groupId: m.group_name || "",
+          groupName: m.group_name || "Modifier",
+          optionId: m.option_id || m.id,
+          optionName: m.option_name || "Option",
+          priceCents: m.price_cents || 0,
+        }));
 
+        return {
+          id: it.id,
+          productId: it.product_id || "",
+          productName: it.product_name || "Product",
+          quantity: it.quantity || 1,
+          basePriceCents: it.unit_price_cents || 0,
+          modifiers,
+          subtotalCents: it.subtotal_cents || (it.unit_price_cents * (it.quantity || 1)),
+          notes: it.notes || undefined,
+          isItemReady: false,
+        };
+      });
+
+      const taxBps = row.tax_rate_basis_points ?? 825;
       return {
         id: row.id,
         orgId: row.org_id,
         locationId: row.location_id,
         orderNumber: row.order_number || `#${row.id.slice(0, 6)}`,
-        type: (row.order_type as OrderType) || "dine_in",
+        type: (row.type as OrderType) || "dine_in",
         status: (row.status as OrderStatus) || "new",
         customer: {
           name: row.customer_name || "Walk-in",
           phone: row.customer_phone || "",
+          email: row.customer_email || undefined,
           tableNumber: row.table_number || undefined,
+          deliveryAddress: row.delivery_address || undefined,
         },
         items,
         subtotalCents: row.subtotal_cents || 0,
         discountCents: row.discount_cents || 0,
-        taxRatePercent: 8.875,
+        taxRatePercent: Number((taxBps / 100).toFixed(3)),
         taxCents: row.tax_cents || 0,
         totalCents: row.total_cents || 0,
-        specialInstructions: row.special_instructions || undefined,
+        specialInstructions: row.notes || undefined,
         createdAt: row.created_at,
         updatedAt: row.updated_at || row.created_at,
         timeline: [],
-        isSimulated: false,
+        isSimulated: !!row.is_simulation,
       };
     });
 
@@ -129,32 +152,82 @@ export async function fetchPersistedOrders(
 export async function persistOrderToSupabase(
   orgId: string,
   order: Order
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; orderId?: string; error?: string }> {
   try {
-    const { error: headerErr } = await supabase.from("orders").upsert(
-      {
-        id: order.id.startsWith("ord-") || order.id.startsWith("pos-") ? undefined : order.id,
-        org_id: orgId,
-        location_id: order.locationId,
-        order_number: order.orderNumber,
-        order_type: order.type,
-        status: order.status,
-        customer_name: order.customer.name,
-        customer_phone: order.customer.phone,
-        table_number: order.customer.tableNumber,
-        subtotal_cents: order.subtotalCents,
-        discount_cents: order.discountCents,
-        tax_cents: order.taxCents,
-        total_cents: order.totalCents,
-        special_instructions: order.specialInstructions,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "id" }
-    );
+    const payloadItems = order.items.map((it) => ({
+      product_id: it.productId && it.productId.length === 36 ? it.productId : null,
+      product_name: it.productName,
+      quantity: it.quantity,
+      unit_price_cents: it.basePriceCents,
+      modifiers: (it.modifiers || []).map((m) => ({
+        option_id: m.optionId && m.optionId.length === 36 ? m.optionId : null,
+        group_name: m.groupName,
+        option_name: m.optionName,
+        price_cents: m.priceCents,
+      })),
+      notes: it.notes || null,
+    }));
+
+    // Tenta persistencia atomica via RPC create_restaurant_order
+    const { data: rpcOrderId, error: rpcErr } = await supabase.rpc("create_restaurant_order", {
+      _org_id: orgId,
+      _location_id: order.locationId,
+      _type: order.type,
+      _customer_name: order.customer.name || "Guest",
+      _customer_phone: order.customer.phone || null,
+      _customer_email: order.customer.email || null,
+      _delivery_address: order.customer.deliveryAddress || null,
+      _table_number: order.customer.tableNumber || null,
+      _notes: order.specialInstructions || null,
+      _discount_cents: order.discountCents || 0,
+      _tax_rate_basis_points: Math.round((order.taxRatePercent || 8.25) * 100),
+      _items: payloadItems,
+      _is_simulation: order.isSimulated || false,
+    });
+
+    if (!rpcErr && rpcOrderId) {
+      return { success: true, orderId: rpcOrderId };
+    }
+
+    // Fallback com validacao estrita do esquema orders
+    const isValidUuid = typeof order.id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(order.id);
+    const headerPayload: Record<string, any> = {
+      org_id: orgId,
+      location_id: order.locationId,
+      order_number: order.orderNumber,
+      type: order.type,
+      status: order.status,
+      customer_name: order.customer.name || "Guest",
+      customer_phone: order.customer.phone || null,
+      customer_email: order.customer.email || null,
+      delivery_address: order.customer.deliveryAddress || null,
+      table_number: order.customer.tableNumber || null,
+      subtotal_cents: order.subtotalCents,
+      discount_cents: order.discountCents,
+      tax_rate_basis_points: Math.round((order.taxRatePercent || 8.25) * 100),
+      tax_cents: order.taxCents,
+      total_cents: order.totalCents,
+      notes: order.specialInstructions || null,
+      is_simulation: order.isSimulated || false,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isValidUuid) {
+      headerPayload.id = order.id;
+    }
+
+    const { data: inserted, error: headerErr } = await supabase
+      .from("orders")
+      .insert(headerPayload)
+      .select("id")
+      .single();
+
     if (headerErr) {
       return { success: false, error: headerErr.message };
     }
-    return { success: true };
+
+    const persistedId = inserted?.id || (isValidUuid ? order.id : undefined);
+    return { success: true, orderId: persistedId };
   } catch (err) {
     return { success: false, error: (err as Error).message };
   }

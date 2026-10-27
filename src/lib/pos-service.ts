@@ -361,27 +361,40 @@ export function finalizeSale(session: POSSession): POSSession {
 export async function submitPosSaleToBackend(session: POSSession): Promise<{ success: boolean; orderId?: string; error?: string }> {
   try {
     const { supabase } = await import("@/integrations/supabase/client");
-    const { data, error } = await supabase.rpc("create_restaurant_order", {
-      p_org_id: session.orgId,
-      p_location_id: session.locationId,
-      p_order_type: session.orderType,
-      p_customer_name: session.customerName || "POS Walk-in Guest",
-      p_items: session.cart.map((item) => ({
-        product_id: item.productId,
-        quantity: item.quantity,
-        unit_price_cents: item.basePriceCents,
-        modifiers: item.modifiers || [],
-        notes: item.notes || "",
+    const itemsPayload = session.cart.map((item) => ({
+      product_id: item.productId && item.productId.length === 36 ? item.productId : null,
+      product_name: item.productName,
+      quantity: item.quantity,
+      unit_price_cents: item.basePriceCents,
+      modifiers: (item.modifiers || []).map((m) => ({
+        option_id: m.optionId && m.optionId.length === 36 ? m.optionId : null,
+        group_name: m.groupName,
+        option_name: m.optionName,
+        price_cents: m.priceCents,
       })),
-      p_discount_cents: session.discountCents,
-      p_tax_cents: session.taxCents,
-      p_payment_method: session.paymentMethod || "cash",
+      notes: item.notes || null,
+    }));
+
+    const { data, error } = await supabase.rpc("create_restaurant_order", {
+      _org_id: session.orgId,
+      _location_id: session.locationId,
+      _type: session.orderType,
+      _customer_name: session.customerName || "POS Walk-in Guest",
+      _customer_phone: null,
+      _customer_email: null,
+      _delivery_address: null,
+      _table_number: null,
+      _notes: `POS Attendant: ${session.cashierName} [${session.paymentMethod || 'cash'}]`,
+      _discount_cents: session.discountCents,
+      _tax_rate_basis_points: Math.round(session.taxRatePercent * 100),
+      _items: itemsPayload,
+      _is_simulation: false,
     });
     if (error) {
       return { success: false, error: error.message };
     }
     const res = data as any;
-    return { success: true, orderId: res?.id || (typeof res === "string" ? res : undefined) };
+    return { success: true, orderId: typeof res === "string" ? res : res?.id };
   } catch (err) {
     return { success: false, error: (err as Error).message };
   }
