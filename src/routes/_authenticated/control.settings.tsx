@@ -46,7 +46,7 @@ function Settings() {
 
   const integrations: { key: string; state: State; detail?: string }[] = [
     { key: "backend", state: pingError ? "failed" : ping ? (ping.ok ? "ok" : "failed") : "pending", ...(ping ? { detail: t("settings.latency", { ms: ping.ms }) } : {}) },
-    { key: "authEmail", state: "ok", detail: t("settings.int.authEmailDetail", { defaultValue: "Supabase Auth operacional para sessões ativas" }) },
+    { key: "authEmail", state: "ok", detail: t("settings.int.authEmailDetail", { defaultValue: "Supabase Auth operacional via supabase.auth" }) },
     { key: "google", state: "unverified" },
     { key: "microsoft", state: "unverified" },
     { key: "stripe", state: "off" },
