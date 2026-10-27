@@ -44,7 +44,7 @@ export function KDSPage() {
   const [nowTick, setNowTick] = useState(Date.now());
   const [audioAlerts, setAudioAlerts] = useState(true);
 
-  // Refresh timer every 10 seconds for real-time timers
+  // Refresh timer every 8 seconds for real-time timers
   useEffect(() => {
     const interval = setInterval(() => {
       setNowTick(Date.now());

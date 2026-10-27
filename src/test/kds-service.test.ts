@@ -4,6 +4,7 @@ import {
   getTicketUrgency,
   assignDefaultStation,
   filterOrdersByStation,
+  mergeKDSOrders,
   DEFAULT_THRESHOLDS,
 } from "@/lib/kds-service";
 import { Order } from "../lib/orders-service";
@@ -103,5 +104,72 @@ describe("kds-service", () => {
 
     const all = filterOrdersByStation(mockOrders, "all");
     expect(all.length).toBe(2);
+  });
+
+  it("deduplicates and merges orders respecting update timestamps", () => {
+    const initial: Order[] = [
+      {
+        id: "ord-1",
+        orgId: "org-1",
+        locationId: "loc-1",
+        orderNumber: "#101",
+        type: "dine_in",
+        status: "new",
+        customer: { name: "A" },
+        items: [],
+        subtotalCents: 1000,
+        discountCents: 0,
+        taxRatePercent: 8,
+        taxCents: 80,
+        totalCents: 1080,
+        createdAt: "2026-05-10T12:00:00Z",
+        updatedAt: "2026-05-10T12:00:00Z",
+        timeline: [],
+      },
+    ];
+
+    const incoming: Order[] = [
+      {
+        id: "ord-1",
+        orgId: "org-1",
+        locationId: "loc-1",
+        orderNumber: "#101",
+        type: "dine_in",
+        status: "in_prep",
+        customer: { name: "A" },
+        items: [],
+        subtotalCents: 1000,
+        discountCents: 0,
+        taxRatePercent: 8,
+        taxCents: 80,
+        totalCents: 1080,
+        createdAt: "2026-05-10T12:00:00Z",
+        updatedAt: "2026-05-10T12:05:00Z",
+        timeline: [],
+      },
+      {
+        id: "ord-2",
+        orgId: "org-1",
+        locationId: "loc-1",
+        orderNumber: "#102",
+        type: "takeout",
+        status: "new",
+        customer: { name: "B" },
+        items: [],
+        subtotalCents: 500,
+        discountCents: 0,
+        taxRatePercent: 8,
+        taxCents: 40,
+        totalCents: 540,
+        createdAt: "2026-05-10T12:06:00Z",
+        updatedAt: "2026-05-10T12:06:00Z",
+        timeline: [],
+      },
+    ];
+
+    const merged = mergeKDSOrders(initial, incoming);
+    expect(merged.length).toBe(2);
+    const ord1 = merged.find((o) => o.id === "ord-1");
+    expect(ord1?.status).toBe("in_prep");
   });
 });

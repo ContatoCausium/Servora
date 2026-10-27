@@ -54,6 +54,29 @@ export function filterOrdersByStation(orders: Order[], station: KitchenStation |
   );
 }
 
+/** Deduplicate orders favoring latest updated_at or non-simulated */
+export function mergeKDSOrders(existing: Order[], incoming: Order[]): Order[] {
+  const map = new Map<string, Order>();
+  for (const ord of existing) {
+    map.set(ord.id, ord);
+  }
+  for (const ord of incoming) {
+    const curr = map.get(ord.id);
+    if (!curr) {
+      map.set(ord.id, ord);
+      continue;
+    }
+    const currTime = new Date(curr.updatedAt || curr.createdAt).getTime();
+    const incomingTime = new Date(ord.updatedAt || ord.createdAt).getTime();
+    if (incomingTime >= currTime) {
+      map.set(ord.id, ord);
+    }
+  }
+  return Array.from(map.values()).sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+}
+
 export function simulateIncomingOrder(orgId: string, locationId: string): Order {
   const rand = Math.floor(1000 + Math.random() * 9000);
   const newOrder: Order = {
