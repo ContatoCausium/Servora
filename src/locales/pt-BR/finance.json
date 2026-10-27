@@ -57,7 +57,86 @@
   "categories": {
     "suppliers": "Fornecedores & Distribuidores",
     "taxes": "Impostos & Taxas Fiscais",
-    "rent": "Aluguel & Condomínio Comercial",
+    "rent": "Aluguel & Ocupação",
+    "payroll": "Folha de Pagamento & Salários",
+    "utilities": "Utilidades (Energia, Água, Gás)",
+    "ingredients": "Insumos & Ingredientes",
+    "maintenance": "Manutenção & Reparos",
+    "marketing": "Marketing & Divulgação",
+    "other": "Outras Despesas"
+  },
+  "recurrence": {
+    "fixed": "Fixa",
+    "variable": "Variável",
+    "recurring": "Recorrente"
+  },
+  "metrics": {
+    "netProfit": "Lucro Líquido Estimado",
+    "margin": "Margem",
+    "totalExpenses": "Despesas Operacionais",
+    "payablesPending": "A Pagar (Pendente)",
+    "overdue": "Vencido",
+    "paidThisMonth": "Pago no Ciclo"
+  },
+  "audit": {
+    "salesRevenueTitle": "Faturamento Confirmado",
+    "salesRevenueDesc": "proveniente de pedidos concluídos no PDV",
+    "simulationNotice": "Vendas em Modo Simulação"
+  },
+  "table": {
+    "title": "Lançamentos & Contas a Pagar",
+    "subtitle": "Despesas operacionais categorizadas em USD",
+    "searchPlaceholder": "Buscar por descrição ou credor...",
+    "allCategories": "Todas as Categorias",
+    "allStatus": "Todos os Status",
+    "pending": "Pendente",
+    "paid": "Pago",
+    "overdue": "Vencido",
+    "description": "Descrição",
+    "category": "Categoria",
+    "recurrence": "Recorrência",
+    "dueDate": "Vencimento",
+    "amount": "Valor (USD)",
+    "status": "Status",
+    "actions": "Ações",
+    "empty": "Nenhuma despesa localizada para o filtro selecionado."
+  },
+  "form": {
+    "newTitle": "Novo Lançamento Financeiro",
+    "editTitle": "Editar Lançamento",
+    "subtitle": "Cadastre ou edite despesa operacional do restaurante",
+    "description": "Descrição do Pagamento",
+    "amount": "Valor",
+    "dueDate": "Data de Vencimento",
+    "category": "Categoria Contábil",
+    "recurrence": "Tipo de Despesa",
+    "supplier": "Fornecedor / Beneficiário",
+    "status": "Status do Pagamento",
+    "responsible": "Responsável pelo Lançamento",
+    "cancel": "Cancelar",
+    "save": "Salvar Lançamento"
+  },
+  "deleteConfirm": {
+    "title": "Excluir Lançamento",
+    "body": "Tem certeza que deseja remover esta despesa? Esta ação não pode ser desfeita.",
+    "action": "Excluir"
+  },
+  "newExpense": "Nova Despesa",
+  "readOnlyNotice": "Modo de leitura ativo. Apenas gerentes e proprietários podem lançar ou alterar despesas.",
+  "expenseCreated": "Despesa registrada com sucesso!",
+  "expenseUpdated": "Lançamento atualizado com sucesso!",
+  "expenseDeleted": "Despesa removida com sucesso.",
+  "statusChanged": "Status do pagamento atualizado.",
+  "errors": {
+    "descriptionRequired": "Informe a descrição da despesa",
+    "amountPositive": "Informe um valor monetário positivo válido"
+  },
+  "charts": {
+    "trendTitle": "Tendência Financeira Mensal (USD)",
+    "trendSubtitle": "Comparativo de receita realizada versus despesas operacionais",
+    "breakdownTitle": "Distribuição de Despesas",
+    "breakdownSubtitle": "Composição por categoria de custo operacional"
+  }l & Condomínio Comercial",
     "payroll": "Folha de Pagamento & Encargos",
     "utilities": "Energia, Água & Gás",
     "ingredients": "Insumos & Perecíveis Diretos",

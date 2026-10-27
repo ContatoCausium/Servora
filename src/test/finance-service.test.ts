@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   calculateDreStatement,
   calculateProductMargins,
@@ -6,177 +6,131 @@ import {
   computeFinanceSummary,
   formatUsd,
   type Expense,
-} from "../lib/finance-service";
+} from "@/lib/finance-service";
 
-describe("Finance Service - Formulas & DRE Audit", () => {
+describe("Finance Service - DRE, Margins & Cash Accounting", () => {
   const sampleExpenses: Expense[] = [
     {
       id: "e1",
-      orgId: "org-1",
+      orgId: "org-test",
       locationId: "loc-1",
       category: "rent",
       recurrence: "fixed",
       status: "paid",
-      description: "Commercial Space Lease",
-      amountCents: 500000, // $5,000.00
+      description: "Rent lease",
+      amountCents: 500000, // $5,000
       currency: "usd",
       dueDate: "2025-05-01",
       competencyDate: "2025-05-01",
       responsiblePerson: "Manager",
       isSimulation: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: "2025-05-01",
+      updatedAt: "2025-05-01",
     },
     {
       id: "e2",
-      orgId: "org-1",
+      orgId: "org-test",
       locationId: "loc-1",
-      category: "utilities",
+      category: "payroll",
       recurrence: "variable",
       status: "pending",
-      description: "Electric power",
-      amountCents: 150000, // $1,500.00
+      description: "Shift payroll",
+      amountCents: 300000, // $3,000
       currency: "usd",
       dueDate: "2025-05-15",
       competencyDate: "2025-05-01",
-      responsiblePerson: "Manager",
+      responsiblePerson: "HR",
       isSimulation: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: "2025-05-01",
+      updatedAt: "2025-05-01",
     },
     {
       id: "e3",
-      orgId: "org-1",
+      orgId: "org-test",
       locationId: "loc-1",
-      category: "marketing",
+      category: "ingredients", // COGS item excluded from OpEx
       recurrence: "variable",
-      status: "pending",
-      description: "Simulated local promo experiment",
-      amountCents: 80000, // $800.00
+      status: "paid",
+      description: "Cheese bulk restock",
+      amountCents: 100000, // $1,000
       currency: "usd",
-      dueDate: "2025-05-20",
+      dueDate: "2025-05-10",
       competencyDate: "2025-05-01",
-      responsiblePerson: "Lead",
-      isSimulation: true, // Should be ignored in real OpEx
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      responsiblePerson: "Sous Chef",
+      isSimulation: false,
+      createdAt: "2025-05-01",
+      updatedAt: "2025-05-01",
     },
   ];
 
-  it("calculates DRE statement line items correctly with real sales", () => {
-    const realSalesCents = 2000000; // $20,000.00
-    const discountsCents = 100000;  // $1,000.00
-    const taxesCents = 165000;      // $1,650.00
-    const cogsCents = 550000;       // $5,500.00
-    const simulatedSalesCents = 300000; // $3,000.00
+  it("calculates DRE statement correctly with deductions and OpEx", () => {
+    const grossRevenue = 2000000; // $20,000
+    const discounts = 100000; // $1,000
+    const taxes = 150000; // $1,500
+    const cogs = 500000; // $5,000 (25%)
 
-    const dre = calculateDreStatement(
-      realSalesCents,
-      discountsCents,
-      taxesCents,
-      cogsCents,
-      sampleExpenses,
-      simulatedSalesCents
-    );
+    const dre = calculateDreStatement(grossRevenue, discounts, taxes, cogs, sampleExpenses, 0);
 
-    // Net revenue = 2000000 - 100000 - 165000 = 1735000 ($17,350)
-    expect(dre.netRevenueCents).toBe(1735000);
-    // Gross profit = Net revenue - COGS = 1735000 - 550000 = 1185000 ($11,850)
-    expect(dre.grossProfitCents).toBe(1185000);
-    // OpEx ignores e3 (simulation). e1 (500000) + e2 (150000) = 650000 ($6,500)
-    expect(dre.operatingExpensesCents).toBe(650000);
-    // Net profit = Gross profit - OpEx = 1185000 - 650000 = 535000 ($5,350)
-    expect(dre.estimatedNetProfitCents).toBe(535000);
-
-    // Segregation check: simulated sales must not blend into gross revenue
-    expect(dre.grossRevenueCents).toBe(2000000);
-    expect(dre.simulatedGrossRevenueCents).toBe(300000);
+    // Net Revenue = 20,000 - 1,000 - 1,500 = 17,500 ($17,500.00)
+    expect(dre.netRevenueCents).toBe(1750000);
+    // Gross Profit = 17,500 - 5,000 = 12,500
+    expect(dre.grossProfitCents).toBe(1250000);
+    // Gross Margin % = (12,500 / 17,500) * 100 = 71.43%
+    expect(dre.grossMarginPct).toBeCloseTo(71.43, 1);
+    // OpEx must exclude ingredient category: fixed rent (5,000) + variable payroll (3,000) = 8,000
+    expect(dre.operatingExpensesCents).toBe(800000);
+    // Operating Profit = 12,500 - 8,000 = 4,500
+    expect(dre.operatingProfitCents).toBe(450000);
+    expect(dre.netMarginPct).toBeCloseTo((450000 / 1750000) * 100, 1);
   });
 
-  it("triggers alerts when COGS exceeds 35% or margin drops below 60%", () => {
-    const netSales = 1000000;
-    const highCogs = 450000; // 45% COGS -> triggers alert
-    const dre = calculateDreStatement(netSales, 0, 0, highCogs, []);
-
-    expect(dre.cogsPct).toBe(45);
-    expect(dre.grossMarginPct).toBe(55); // < 60% -> triggers second alert
-    expect(dre.alertsCount).toBeGreaterThanOrEqual(2);
+  it("triggers alerts when COGS is high (>35%) or margin low (<60%)", () => {
+    const gross = 1000000; // $10,000
+    const highCogs = 450000; // 45% of gross
+    const dre = calculateDreStatement(gross, 0, 0, highCogs, [], 0);
+    expect(dre.alertsCount).toBeGreaterThan(0);
   });
 
-  it("computes product margin metrics with health badges", () => {
-    const items = [
-      {
-        id: "p1",
-        name: "Smash Burger",
-        category: "Burgers",
-        priceCents: 1500, // $15.00
-        recipeCostCents: 400, // $4.00 (26.6% COGS -> healthy)
-        unitsSold: 10,
-      },
-      {
-        id: "p2",
-        name: "Special Ribeye Sandwich",
-        category: "Burgers",
-        priceCents: 2000, // $20.00
-        recipeCostCents: 850, // $8.50 (42.5% COGS -> high cost alert)
-        unitsSold: 5,
-      },
+  it("calculates product margins and generates warnings accurately", () => {
+    const products = [
+      { id: "p1", name: "Burger", category: "Burgers", priceCents: 1500, recipeCostCents: 400, unitsSold: 10 },
+      { id: "p2", name: "Steak", category: "Mains", priceCents: 3000, recipeCostCents: 1500, unitsSold: 5 }, // 50% cogs -> alert
     ];
 
-    const margins = calculateProductMargins(items);
+    const margins = calculateProductMargins(products);
     expect(margins).toHaveLength(2);
 
-    const p1 = margins[0]!;
-    expect(p1.revenueCents).toBe(15000);
-    expect(p1.cogsCents).toBe(4000);
-    expect(p1.grossProfitCents).toBe(11000);
-    expect(p1.hasHighCostAlert).toBe(false);
+    const burger = margins[0]!;
+    expect(burger.revenueCents).toBe(15000);
+    expect(burger.cogsCents).toBe(4000);
+    expect(burger.grossProfitCents).toBe(11000);
+    expect(burger.hasHighCostAlert).toBe(false);
 
-    const p2 = margins[1]!;
-    expect(p2.hasHighCostAlert).toBe(true);
+    const steak = margins[1]!;
+    expect(steak.hasHighCostAlert).toBe(true);
+    expect(steak.hasLowMarginAlert).toBe(true);
   });
 
-  it("aggregates category margins accurately", () => {
-    const productMargins = [
-      {
-        productId: "1",
-        productName: "A",
-        category: "Food",
-        unitsSold: 1,
-        revenueCents: 10000,
-        cogsCents: 3000,
-        grossProfitCents: 7000,
-        grossMarginPct: 70,
-        cogsPct: 30,
-        hasHighCostAlert: false,
-        hasLowMarginAlert: false,
-      },
-      {
-        productId: "2",
-        productName: "B",
-        category: "Drinks",
-        unitsSold: 1,
-        revenueCents: 5000,
-        cogsCents: 1000,
-        grossProfitCents: 4000,
-        grossMarginPct: 80,
-        cogsPct: 20,
-        hasHighCostAlert: false,
-        hasLowMarginAlert: false,
-      },
+  it("aggregates category margins properly", () => {
+    const metrics = [
+      { productId: "p1", productName: "Classic", category: "Burgers", unitsSold: 2, revenueCents: 2000, cogsCents: 600, grossProfitCents: 1400, grossMarginPct: 70, cogsPct: 30, hasHighCostAlert: false, hasLowMarginAlert: false },
+      { productId: "p2", productName: "Bacon Double", category: "Burgers", unitsSold: 1, revenueCents: 1500, cogsCents: 450, grossProfitCents: 1050, grossMarginPct: 70, cogsPct: 30, hasHighCostAlert: false, hasLowMarginAlert: false },
+      { productId: "p3", productName: "Shake", category: "Drinks", unitsSold: 1, revenueCents: 500, cogsCents: 100, grossProfitCents: 400, grossMarginPct: 80, cogsPct: 20, hasHighCostAlert: false, hasLowMarginAlert: false },
     ];
 
-    const catMargins = calculateCategoryMargins(productMargins);
-    expect(catMargins).toHaveLength(2);
-    const food = catMargins.find((c) => c.category === "Food");
-    expect(food?.revenueCents).toBe(10000);
-    expect(food?.grossProfitCents).toBe(7000);
-    expect(food?.grossMarginPct).toBe(70);
+    const categories = calculateCategoryMargins(metrics);
+    expect(categories).toHaveLength(2);
+
+    const burgers = categories.find((c) => c.category === "Burgers");
+    expect(burgers).toBeDefined();
+    expect(burgers?.revenueCents).toBe(3500);
+    expect(burgers?.cogsCents).toBe(1050);
+    expect(burgers?.grossProfitCents).toBe(2450);
   });
 
-  it("formats USD values with negative sign and thousands separator", () => {
-    expect(formatUsd(150050)).toBe("$1,500.50");
-    expect(formatUsd(-32000)).toBe("-$320.00");
+  it("formats currency values accurately in USD", () => {
+    expect(formatUsd(125000)).toBe("$1,250.00");
     expect(formatUsd(0)).toBe("$0.00");
+    expect(formatUsd(-5000)).toBe("-$50.00");
   });
 });

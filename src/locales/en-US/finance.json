@@ -1,38 +1,38 @@
 {
-  "title": "Financial Management & Margins",
-  "subtitle": "Executive financial control, expense categorisation, USD accounts payable, and estimated restaurant P&L.",
+  "title": "Finance & Profitability",
+  "subtitle": "Executive financial management, USD expense control, real vs simulated revenue segregation, cash flow, and management DRE.",
   "tabs": {
-    "overview": "Executive Dashboard",
-    "dre": "P&L & Margins",
-    "cashflow": "Cash Flow Projections",
-    "payables": "Payables & Receivables"
+    "overview": "Executive Overview",
+    "dre": "P&L / DRE Statement",
+    "cashflow": "Cash Flow Statement",
+    "payables": "Accounts Payable & Receivable"
   },
   "dre": {
     "title": "Income Statement (P&L / DRE)",
-    "subtitle": "Managerial profitability in USD: gross volume, deductions, COGS, operating overhead and net earnings.",
+    "subtitle": "Managerial profitability in USD: Gross Revenue, deductions, COGS from recipes, OpEx, and estimated Net Profit.",
     "grossRevenue": "Gross Sales Revenue",
-    "discounts": "(-) Discounts & Promotions",
-    "taxes": "(-) Sales Taxes & Duties",
+    "discounts": "(-) Sales Discounts & Comps",
+    "taxes": "(-) Sales Taxes",
     "netRevenue": "(=) Net Operating Revenue",
     "cogs": "(-) Cost of Goods Sold (COGS)",
     "grossProfit": "(=) Gross Profit",
     "grossMargin": "Gross Margin",
     "operatingExpenses": "(-) Operating Expenses (OpEx)",
-    "fixedExpenses": "Fixed Operational Overhead",
-    "variableExpenses": "Variable Operational Overhead",
-    "operatingProfit": "(=) Operating Profit (EBITDA)",
+    "fixedExpenses": "Fixed Operating Expenses",
+    "variableExpenses": "Variable Operating Expenses",
+    "operatingProfit": "(=) Operating Result (EBITDA)",
     "operatingMargin": "Operating Margin",
     "netProfit": "(=) Estimated Net Profit",
     "netMargin": "Net Margin",
-    "productMarginsTitle": "Product Margin Contribution",
-    "categoryMarginsTitle": "Category Profitability Analysis",
-    "alertHighCogs": "Alert: COGS above standard threshold (35%)",
-    "alertLowMargin": "Notice: Gross margin below 60% target",
+    "productMarginsTitle": "Product Margin & Food Cost Analysis",
+    "categoryMarginsTitle": "Category Profitability Breakdown",
+    "alertHighCogs": "Warning: COGS exceeds benchmark (35%)",
+    "alertLowMargin": "Warning: Margin below target (60%)",
     "healthy": "Healthy Margin"
   },
   "cashflow": {
     "title": "Cash Flow Statement (USD)",
-    "subtitle": "Opening balance, gross sales inflows, liquidated disbursements, and closing net cash.",
+    "subtitle": "Opening balance, sales inflows, settled expenses, and closing balance.",
     "openingBalance": "Opening Cash",
     "inflows": "Total Inflows",
     "outflows": "Total Outflows",
@@ -41,82 +41,87 @@
     "weekly": "Weekly",
     "monthly": "Monthly"
   },
-  "kpis": {
-    "realRevenue": "Real Realized Revenue",
-    "realRevenueSub": "Derived from actual non-simulation orders (USD)",
-    "simulatedRevenue": "Simulated POS Volume",
-    "simulatedRevenueSub": "Segregated sandbox / training figures (excluded from P&L)",
-    "totalExpenses": "Total Scheduled Expenses",
-    "totalExpensesSub": "Fixed + Variable obligations this period",
-    "estimatedNet": "Estimated Net Operating Result",
-    "margin": "Operating Margin: {{value}}%",
-    "pendingPayables": "Pending Payables",
-    "overdueAlert": "{{count}} overdue invoices requiring immediate payment",
-    "paidVolume": "Settled This Cycle"
-  },
   "categories": {
-    "suppliers": "Suppliers & Broadline Distributors",
-    "taxes": "Taxes & Municipal Fees",
-    "rent": "Real Estate & Lease",
-    "payroll": "Staff Payroll & Benefits",
-    "utilities": "Utilities (Power, Gas, Water)",
-    "ingredients": "Direct Ingredients & Perishables",
-    "maintenance": "Equipment Maintenance & Servicing",
-    "marketing": "Marketing & Promotions",
-    "other": "General & Administrative"
+    "suppliers": "Wholesale Suppliers",
+    "taxes": "Taxes & Regulatory Fees",
+    "rent": "Rent & Occupancy",
+    "payroll": "Payroll & Hourly Wages",
+    "utilities": "Commercial Utilities",
+    "ingredients": "Raw Ingredients",
+    "maintenance": "Equipment Maintenance",
+    "marketing": "Marketing & Ads",
+    "other": "Other Operating Expenses"
   },
   "recurrence": {
-    "fixed": "Fixed Cost",
-    "variable": "Variable Cost",
-    "recurring": "Recurring Cost"
+    "fixed": "Fixed",
+    "variable": "Variable",
+    "recurring": "Recurring"
   },
-  "status": {
-    "paid": "Paid",
-    "pending": "Pending",
-    "overdue": "Overdue"
+  "metrics": {
+    "netProfit": "Estimated Net Profit",
+    "margin": "Margin",
+    "totalExpenses": "Operating Expenses",
+    "payablesPending": "Pending Payables",
+    "overdue": "Overdue",
+    "paidThisMonth": "Settled This Cycle"
   },
-  "filters": {
-    "searchPlaceholder": "Search expenses, vendors or descriptions...",
+  "audit": {
+    "salesRevenueTitle": "Confirmed Sales Revenue",
+    "salesRevenueDesc": "derived from fulfilled POS orders",
+    "simulationNotice": "Simulation Sales Volume"
+  },
+  "table": {
+    "title": "Operating Expenses & Invoices",
+    "subtitle": "Track and categorize outgoing store expenditures in USD",
+    "searchPlaceholder": "Search description or vendor...",
     "allCategories": "All Categories",
-    "allRecurrences": "All Frequencies",
-    "allStatuses": "All Statuses",
-    "allStores": "All Locations",
-    "newExpense": "New Expense Entry"
+    "allStatus": "All Statuses",
+    "pending": "Pending",
+    "paid": "Paid",
+    "overdue": "Overdue",
+    "description": "Description",
+    "category": "Category",
+    "recurrence": "Type",
+    "dueDate": "Due Date",
+    "amount": "Amount (USD)",
+    "status": "Status",
+    "actions": "Actions",
+    "empty": "No expenses found for selected filters."
   },
   "form": {
-    "newTitle": "Register Restaurant Expense",
-    "editTitle": "Edit Expense Entry",
-    "desc": "Enter invoice details in USD. Receipts can be attached for auditing.",
-    "descriptionLabel": "Description / Purpose",
-    "descriptionPlaceholder": "e.g. Commercial electric utility bill for October",
-    "supplierLabel": "Supplier / Vendor Name",
-    "supplierPlaceholder": "e.g. Sysco Foods or ConEdison",
-    "amountLabel": "Amount (USD $)",
-    "amountPlaceholder": "0.00",
-    "categoryLabel": "Category",
-    "recurrenceLabel": "Type of Expense",
-    "statusLabel": "Liquidation Status",
-    "dueDateLabel": "Due Date",
-    "competencyLabel": "Accounting Competency Month",
-    "responsibleLabel": "Responsible Manager",
-    "locationLabel": "Allocated Location",
-    "attachmentLabel": "Demonstrative Invoice / Proof URL or Base64",
+    "newTitle": "Record New Expense",
+    "editTitle": "Edit Expense Record",
+    "subtitle": "Manage store cost entry and scheduling",
+    "description": "Expense Description",
+    "amount": "Amount",
+    "dueDate": "Due Date",
+    "category": "Cost Category",
+    "recurrence": "Recurrence Type",
+    "supplier": "Vendor / Beneficiary",
+    "status": "Payment Status",
+    "responsible": "Approver / Responsible",
     "cancel": "Cancel",
-    "save": "Save Expense Entry"
+    "save": "Save Record"
   },
-  "evolution": {
-    "title": "6-Month Financial Trend (USD)",
-    "subtitle": "Historical monthly revenue vs expenses and computed operating spread.",
-    "revenue": "Revenue",
-    "expenses": "Expenses",
-    "net": "Net Profit"
+  "deleteConfirm": {
+    "title": "Delete Expense",
+    "body": "Are you sure you want to permanently delete this expense?",
+    "action": "Delete"
   },
-  "receiptModal": {
-    "title": "Demonstrative Expense Receipt",
-    "close": "Close"
+  "newExpense": "New Expense",
+  "readOnlyNotice": "Read-only access. Only store managers and owners can register or edit financial entries.",
+  "expenseCreated": "Expense recorded successfully!",
+  "expenseUpdated": "Expense updated successfully!",
+  "expenseDeleted": "Expense removed successfully.",
+  "statusChanged": "Payment status updated.",
+  "errors": {
+    "descriptionRequired": "Please enter an expense description",
+    "amountPositive": "Please enter a valid positive dollar amount"
   },
-  "validation": {
-    "requiredFields": "Description, amount, and supplier are required.",
-    "invalidAmount": "Please provide a valid expense amount greater than zero."
+  "charts": {
+    "trendTitle": "Monthly Financial Trend (USD)",
+    "trendSubtitle": "Realized revenue vs operational expenditure comparison",
+    "breakdownTitle": "Expense Composition",
+    "breakdownSubtitle": "Cost share by operating category"
   }
 }
